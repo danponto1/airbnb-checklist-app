@@ -29,8 +29,24 @@ Open:
 - `data/checklists.db` – SQLite database
 - `uploads/` – uploaded images
 
+## Render persistent storage (Disk + SQLite/uploads)
+Use this for quick reliable persistence on Render.
+
+1. In Render service settings, add a **Disk**:
+   - Name: `checklist-data`
+   - Mount path: `/var/data`
+   - Size: 1 GB (or more)
+2. Add environment variables:
+   - `DATA_DIR=/var/data`
+   - `UPLOAD_DIR=/var/data/uploads`
+3. Redeploy the service.
+
+With this setup:
+- SQLite DB path becomes `/var/data/checklists.db`
+- Uploaded photos are saved in `/var/data/uploads`
+- Data survives deploys/restarts (as long as disk is attached)
+
 ## Next build steps
-1. Rename second property in `checklist.schema.json`
-2. Add final item-by-item wording for all 104 points
-3. Add auth for admin route
-4. Deploy to cloud storage/DB (Supabase) + hosting (Vercel/Railway)
+1. Add admin auth for `/admin`
+2. Add export CSV
+3. Optional migration to Supabase for multi-service scaling

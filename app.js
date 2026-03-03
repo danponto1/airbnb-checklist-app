@@ -8,8 +8,8 @@ const dayjs = require('dayjs');
 const app = express();
 const PORT = process.env.PORT || 3030;
 
-const dataDir = path.join(__dirname, 'data');
-const uploadDir = path.join(__dirname, 'uploads');
+const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
+const uploadDir = process.env.UPLOAD_DIR || path.join(dataDir, 'uploads');
 fs.mkdirSync(dataDir, { recursive: true });
 fs.mkdirSync(uploadDir, { recursive: true });
 
