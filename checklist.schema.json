@@ -1,0 +1,85 @@
+{
+  "properties": [
+    { "id": "big-tree-5378", "name": "5378 Big Tree Road" },
+    { "id": "big-tree-5436", "name": "5436 Big Tree Road" }
+  ],
+  "sections": [
+    {
+      "id": "interior",
+      "name": "Interior",
+      "instructions": [
+        "Walk around first and take photos of any broken, missing, or damaged items."
+      ],
+      "items": [
+        { "key": "bedroom1-floor", "label": "Bedroom 1 - Vacuum/mop/sweep floor" },
+        { "key": "bedroom1-bed", "label": "Bedroom 1 - Bed tasks complete" },
+        { "key": "bedroom1-photo", "label": "Bedroom 1 - Entire room photo (cleaned)", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "bedroom2-floor", "label": "Bedroom 2 - Vacuum/mop/sweep floor" },
+        { "key": "bedroom2-bed", "label": "Bedroom 2 - Bed tasks complete" },
+        { "key": "bedroom2-photo", "label": "Bedroom 2 - Entire room photo (cleaned)", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "bedroom3-floor", "label": "Bedroom 3 - Vacuum/mop/sweep floor" },
+        { "key": "bedroom3-bed", "label": "Bedroom 3 - Bed tasks complete" },
+        { "key": "bedroom3-photo", "label": "Bedroom 3 - Entire room photo (cleaned)", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "livingroom-main", "label": "Living Room - Furniture wiped + floor cleaned" },
+        { "key": "livingroom-couch", "label": "Living Room - Couch cleaned under/within + pillows reset" },
+        { "key": "livingroom-tv", "label": "Living Room - TV + remote checks complete", "hasCondition": true, "conditionOptions": ["Good", "Damaged", "Not Working"] },
+
+        { "key": "kitchen-main", "label": "Kitchen - Full clean + restock starter set (incl. 3 paper towel rolls)", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "kitchen-dishwasher", "label": "Dishwasher - Empty, rinse aid filled, door ok", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "kitchen-refrigerator", "label": "Refrigerator/Freezer - Inside/outside cleaned + temp normal", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "kitchen-sink", "label": "Sink/backsplash cleaned + faucet polished" },
+        { "key": "kitchen-garbage-disposal", "label": "Garbage disposal fresh + debris cleared" },
+        { "key": "kitchen-microwave", "label": "Microwave inside/outside cleaned + buttons tested", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "kitchen-toaster", "label": "Toaster crumbs removed + area wiped" },
+        { "key": "kitchen-stovetop", "label": "Stovetop cleaned + burners tested" },
+        { "key": "kitchen-oven", "label": "Oven inside/outside cleaned", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Damaged", "Not Working"] },
+
+        { "key": "laundry-room", "label": "Laundry room reset items + remove mismatched hangers" },
+        { "key": "laundry-washer-dryer", "label": "Washer/dryer empty + lint trap cleaned + washer left open", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "bathroom1-main", "label": "Bathroom 1 - basket emptied + amenities replaced" },
+        { "key": "bathroom1-shower", "label": "Bathroom 1 - shower/tub cleaned + no mildew" },
+        { "key": "bathroom1-toilet", "label": "Bathroom 1 - toilet cleaned + flush check + seat down" },
+        { "key": "bathroom1-sink", "label": "Bathroom 1 - sink cleaned + plumbing check", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "bathroom2-main", "label": "Bathroom 2 - basket emptied + amenities replaced" },
+        { "key": "bathroom2-shower", "label": "Bathroom 2 - shower/tub cleaned + no mildew" },
+        { "key": "bathroom2-toilet", "label": "Bathroom 2 - toilet cleaned + flush check + seat down" },
+        { "key": "bathroom2-sink", "label": "Bathroom 2 - sink cleaned + plumbing check", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "front-door", "label": "Front door locked" }
+      ]
+    },
+    {
+      "id": "exterior",
+      "name": "Exterior",
+      "items": [
+        { "key": "guest-house", "label": "Guest house cleaned and sanitized", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "deck", "label": "Deck furniture (front/top/barn) swept and wiped" },
+        { "key": "deck-patio-furniture", "label": "Patio furniture wiped and returned", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"] },
+        { "key": "grill", "label": "Grill scraped/cleaned" },
+        { "key": "firepit", "label": "Firepit area cleaned + chairs set" },
+        { "key": "dart-board", "label": "Dart board/chalk board cleaned + darts checked", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"] },
+        { "key": "garage", "label": "Garage condition check", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"] },
+        { "key": "garbage-can", "label": "Garbage can check", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "mini-fridge", "label": "Mini fridge cleaned", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "minibar", "label": "Minibar condition check", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"] },
+        { "key": "ping-pong", "label": "Ping pong table cleaned + inventory checked", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"] },
+        { "key": "door-mats", "label": "Door mats checked/replaced if dirty", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"] },
+        { "key": "high-chair", "label": "High chair cleaned", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"] },
+        { "key": "exercise-room", "label": "Exercise area cleaned", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"] }
+      ]
+    },
+    {
+      "id": "before-leave",
+      "name": "Before You Leave",
+      "items": [
+        { "key": "secure-property", "label": "Secure property: lock all doors and windows" },
+        { "key": "windows-locked", "label": "Confirmed all windows are shut and locked" }
+      ]
+    }
+  ]
+}

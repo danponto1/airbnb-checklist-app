@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8" /><title>Submission <%= submission.id %></title></head>
+<body style="font-family: Arial, sans-serif; margin:24px; max-width:1000px;">
+  <h1>Submission #<%= submission.id %></h1>
+  <p><a href="/admin">← Back to submissions</a></p>
+  <ul>
+    <li>Property: <%= (schema.properties.find(p => p.id === submission.property_id) || {}).name || submission.property_id %></li>
+    <li>Cleaner: <%= submission.cleaner_name %></li>
+    <li>Cleaning Date: <%= submission.cleaning_date || '-' %></li>
+    <li>Submitted: <%= submission.created_at %></li>
+  </ul>
+
+  <% schema.sections.forEach(section => { %>
+    <h2><%= section.name %></h2>
+    <% section.items.forEach(item => {
+      const r = responseMap[item.key] || {};
+      const photos = (photoMap[item.key] || {}).regular || [];
+      const issuePhotos = (photoMap[item.key] || {}).issue || [];
+    %>
+      <div style="border-top:1px solid #ddd; padding:10px 0;">
+        <div><strong><%= item.label %></strong></div>
+        <div>Completed: <%= r.completed ? '✅' : '❌' %></div>
+        <% if (r.condition) { %><div>Condition: <%= r.condition %></div><% } %>
+        <% if (r.notes) { %><div>Notes: <%= r.notes %></div><% } %>
+        <% if (r.issue_note) { %><div>Issue note: <%= r.issue_note %></div><% } %>
+
+        <% if (photos.length) { %>
+          <div>Photos:</div>
+          <% photos.forEach(p => { %>
+            <a href="<%= p.file_path %>" target="_blank"><img src="<%= p.file_path %>" alt="photo" style="max-width:160px; margin:4px;" /></a>
+          <% }) %>
+        <% } %>
+
+        <% if (issuePhotos.length) { %>
+          <div>Issue photos:</div>
+          <% issuePhotos.forEach(p => { %>
+            <a href="<%= p.file_path %>" target="_blank"><img src="<%= p.file_path %>" alt="issue" style="max-width:160px; margin:4px; border:2px solid #d9534f;" /></a>
+          <% }) %>
+        <% } %>
+      </div>
+    <% }) %>
+  <% }) %>
+</body>
+</html>

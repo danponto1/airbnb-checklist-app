@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8" /><title>Submitted</title></head>
+<body style="font-family: Arial, sans-serif; margin: 24px;">
+  <h1>Checklist submitted ✅</h1>
+  <p>Thanks, <strong><%= submission.cleaner_name %></strong>. Submission ID: <strong>#<%= submission.id %></strong></p>
+  <p>
+    <a href="/form">Submit another</a> |
+    <a href="/admin/submissions/<%= submission.id %>">View this submission</a>
+  </p>
+</body>
+</html>

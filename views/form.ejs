@@ -1,0 +1,355 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cleaning Checklist Form</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #182230;
+      --muted: #5f6b7a;
+      --line: #dde3ea;
+      --brand: #0f6fff;
+      --warn-bg: #fff8e6;
+      --warn-line: #f0c36d;
+      --danger-bg: #ffe9e9;
+      --danger-line: #ffc2c2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .container { max-width: 980px; margin: 0 auto; padding: 18px; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(246, 248, 251, .9);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner { max-width: 980px; margin: 0 auto; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; }
+    h1 { margin: 0; font-size: 1.3rem; }
+    a { color: var(--brand); text-decoration: none; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+    .error {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-line);
+      color: #8f2020;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: .95rem;
+    }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .field label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], input[type="date"], select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      font: inherit;
+      background: #fff;
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    .section-title { margin: 0 0 10px; font-size: 1.1rem; }
+    .instruction { margin: 0 0 12px 16px; color: var(--muted); }
+    .category {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .category > summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 12px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fbff;
+    }
+    .category > summary::-webkit-details-marker { display: none; }
+    .category > summary::after { content: '▾'; color: var(--muted); }
+    .category[open] > summary::after { content: '▴'; }
+    .category-body { padding: 0 10px 10px; }
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 10px;
+      background: #fff;
+    }
+    .item-top { display: flex; gap: 10px; align-items: flex-start; }
+    .item-title { font-weight: 600; }
+    .item-body { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .issue-box {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid var(--warn-line);
+      background: var(--warn-bg);
+      border-radius: 10px;
+    }
+    .small { color: var(--muted); font-size: .82rem; margin-bottom: 6px; }
+    .actions {
+      position: sticky;
+      bottom: 0;
+      background: rgba(246, 248, 251, .95);
+      border-top: 1px solid var(--line);
+      padding: 12px 18px;
+      margin: 8px -18px -18px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    button {
+      background: var(--brand);
+      color: #fff;
+      border: 0;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    @media (max-width: 780px) {
+      .grid-3, .item-body { grid-template-columns: 1fr; }
+      .container { padding: 12px; }
+      .topbar-inner { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <h1>Cleaning Checklist</h1>
+      <a href="/admin">Admin submissions</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <% if (error) { %>
+      <div class="error"><%= error %><br><span class="small">Your text/checkbox selections were kept. Photo files must be re-selected by browser security rules.</span></div>
+    <% } %>
+
+    <% const fd = formData || {}; %>
+    <form method="post" action="/submit" enctype="multipart/form-data" id="checklist-form">
+      <div class="card">
+        <h2 class="section-title">Job Details</h2>
+        <div class="grid-3">
+          <div class="field">
+            <label>Property</label>
+            <select name="property_id" required>
+              <option value="">Select property</option>
+              <% schema.properties.forEach(p => { %>
+                <option value="<%= p.id %>" <%= fd.property_id === p.id ? 'selected' : '' %>><%= p.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="field">
+            <label>Cleaner Name</label>
+            <input type="text" name="cleaner_name" required value="<%= fd.cleaner_name || '' %>" />
+          </div>
+          <div class="field">
+            <label>Cleaning Date</label>
+            <input type="date" name="cleaning_date" value="<%= fd.cleaning_date || '' %>" />
+          </div>
+        </div>
+      </div>
+
+      <% schema.sections.forEach(section => { %>
+        <div class="card">
+          <h2 class="section-title"><%= section.name %></h2>
+          <% if (section.instructions) { %>
+            <ul class="instruction">
+              <% section.instructions.forEach(i => { %><li><%= i %></li><% }) %>
+            </ul>
+          <% } %>
+
+          <%
+            const categorize = (label, sectionName) => {
+              if (sectionName === 'Interior') {
+                if (label.startsWith('Bedroom')) return 'Bedrooms';
+                if (label.startsWith('Bathroom')) return 'Bathrooms';
+                if (label.startsWith('Living Room')) return 'Living Room';
+                if (label.startsWith('Kitchen')) return 'Kitchen';
+                if (label.startsWith('Laundry')) return 'Laundry Room';
+                if (label.startsWith('Front door') || label.startsWith('Front Door')) return 'Front Door';
+                return 'Other';
+              }
+              return sectionName;
+            };
+
+            const grouped = {};
+            section.items.forEach(item => {
+              const cat = categorize(item.label, section.name);
+              if (!grouped[cat]) grouped[cat] = [];
+              grouped[cat].push(item);
+            });
+
+            const preferredOrder = ['Bedrooms', 'Bathrooms', 'Living Room', 'Kitchen', 'Laundry Room', 'Front Door', 'Other'];
+            const categoryNames = Object.keys(grouped).sort((a, b) => {
+              const ai = preferredOrder.indexOf(a);
+              const bi = preferredOrder.indexOf(b);
+              if (ai === -1 && bi === -1) return a.localeCompare(b);
+              if (ai === -1) return 1;
+              if (bi === -1) return -1;
+              return ai - bi;
+            });
+          %>
+
+          <% categoryNames.forEach((catName) => { %>
+            <details class="category">
+              <summary><%= catName %> <span style="font-weight:500; color:var(--muted)">(<%= grouped[catName].length %>)</span></summary>
+              <div class="category-body">
+                <% grouped[catName].forEach(item => { %>
+                  <div class="item">
+                    <div class="item-top">
+                      <input type="checkbox" name="complete__<%= item.key %>" style="margin-top:2px;" <%= fd[`complete__${item.key}`] ? 'checked' : '' %> />
+                      <div class="item-title"><%= item.label %></div>
+                    </div>
+
+                    <div class="item-body">
+                      <% if (item.hasCondition) { %>
+                        <div class="field">
+                          <label>Condition</label>
+                          <select name="condition__<%= item.key %>" class="condition" data-item="<%= item.key %>">
+                            <option value="">Select</option>
+                            <% item.conditionOptions.forEach(c => { %>
+                              <option value="<%= c %>" <%= fd[`condition__${item.key}`] === c ? 'selected' : '' %>><%= c %></option>
+                            <% }) %>
+                          </select>
+                        </div>
+                      <% } %>
+
+                      <% if (item.requiresPhoto) { %>
+                        <div class="field">
+                          <label>Required photo(s) (<%= item.minPhotos || 1 %>+)</label>
+                          <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple />
+                        </div>
+                      <% } %>
+
+                      <div class="field" style="grid-column: 1 / -1;">
+                        <label>Notes (optional)</label>
+                        <textarea name="notes__<%= item.key %>"><%= fd[`notes__${item.key}`] || '' %></textarea>
+                      </div>
+                    </div>
+
+                    <div id="issue-box-<%= item.key %>" class="issue-box" style="<%= ['Damaged','Not Working'].includes(fd[`condition__${item.key}`]) ? 'display:block;' : '' %>">
+                      <div class="small">Damaged / Not Working selected — issue note + issue photo required.</div>
+                      <div class="field">
+                        <label>Issue note</label>
+                        <textarea name="issue_note__<%= item.key %>"><%= fd[`issue_note__${item.key}`] || '' %></textarea>
+                      </div>
+                      <div class="field">
+                        <label>Issue photo(s)</label>
+                        <input type="file" name="issue_photos__<%= item.key %>" accept="image/*" multiple />
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            </details>
+          <% }) %>
+        </div>
+      <% }) %>
+
+      <div class="actions">
+        <button type="submit">Submit Checklist</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('checklist-form');
+    const DRAFT_KEY = 'airbnb-checklist-draft-v1';
+
+    function toggleIssueBox(selectEl) {
+      const key = selectEl.dataset.item;
+      const show = ['Damaged','Not Working'].includes(selectEl.value);
+      const box = document.getElementById(`issue-box-${key}`);
+      if (box) box.style.display = show ? 'block' : 'none';
+    }
+
+    document.querySelectorAll('.condition').forEach(el => {
+      el.addEventListener('change', () => {
+        toggleIssueBox(el);
+        saveDraft();
+      });
+      toggleIssueBox(el);
+    });
+
+    function collectDraft() {
+      const fields = form.querySelectorAll('input, select, textarea');
+      const draft = {};
+      fields.forEach(el => {
+        if (!el.name) return;
+        if (el.type === 'file') return; // browser blocks restoring files
+        if (el.type === 'checkbox') {
+          draft[el.name] = el.checked;
+        } else {
+          draft[el.name] = el.value;
+        }
+      });
+      return draft;
+    }
+
+    function applyDraft(draft) {
+      Object.entries(draft || {}).forEach(([name, value]) => {
+        const el = form.querySelector(`[name="${CSS.escape(name)}"]`);
+        if (!el) return;
+        if (el.type === 'checkbox') {
+          el.checked = !!value;
+        } else if (el.type !== 'file') {
+          el.value = value ?? '';
+        }
+      });
+
+      document.querySelectorAll('.condition').forEach(toggleIssueBox);
+    }
+
+    function saveDraft() {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(collectDraft()));
+      } catch (_) {}
+    }
+
+    function loadDraft() {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        const draft = JSON.parse(raw);
+        applyDraft(draft);
+      } catch (_) {}
+    }
+
+    function clearDraft() {
+      try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+    }
+
+    form.addEventListener('input', saveDraft);
+    form.addEventListener('change', saveDraft);
+    form.addEventListener('submit', () => {
+      // On successful submit we clear; if server rejects validation,
+      // this callback still ran but the next paint preserves entered values from server-side re-render.
+      setTimeout(clearDraft, 1200);
+    });
+
+    loadDraft();
+  </script>
+</body>
+</html>

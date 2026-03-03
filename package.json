@@ -1,0 +1,20 @@
+{
+  "name": "airbnb-checklist-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "dayjs": "^1.11.19",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "multer": "^2.1.0"
+  }
+}
