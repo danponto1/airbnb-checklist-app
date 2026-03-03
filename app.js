@@ -2,70 +2,33 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
-const Database = require('better-sqlite3');
 const dayjs = require('dayjs');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3030;
 
-const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
-const uploadDir = process.env.UPLOAD_DIR || path.join(dataDir, 'uploads');
-fs.mkdirSync(dataDir, { recursive: true });
-fs.mkdirSync(uploadDir, { recursive: true });
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || 'checklist-photos';
 
-const db = new Database(path.join(dataDir, 'checklists.db'));
-const schema = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.schema.json'), 'utf8'));
-
-function initDb() {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS submissions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      property_id TEXT NOT NULL,
-      cleaner_name TEXT NOT NULL,
-      cleaning_date TEXT,
-      created_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS responses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      submission_id INTEGER NOT NULL,
-      item_key TEXT NOT NULL,
-      completed INTEGER NOT NULL DEFAULT 0,
-      condition TEXT,
-      notes TEXT,
-      issue_note TEXT,
-      FOREIGN KEY(submission_id) REFERENCES submissions(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS photos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      submission_id INTEGER NOT NULL,
-      item_key TEXT NOT NULL,
-      file_path TEXT NOT NULL,
-      original_name TEXT,
-      is_issue INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL,
-      FOREIGN KEY(submission_id) REFERENCES submissions(id)
-    );
-  `);
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
 }
 
-initDb();
-
-const storage = multer.diskStorage({
-  destination: (_, __, cb) => cb(null, uploadDir),
-  filename: (_, file, cb) => {
-    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
-    cb(null, `${Date.now()}-${safe}`);
-  }
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false }
 });
 
+const schema = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.schema.json'), 'utf8'));
+
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static(uploadDir));
 
 function allItems() {
   return schema.sections.flatMap(section => section.items.map(item => ({ ...item, sectionId: section.id, sectionName: section.name })));
@@ -73,6 +36,28 @@ function allItems() {
 
 function needsIssueEvidence(condition) {
   return ['Damaged', 'Not Working'].includes(condition);
+}
+
+function safeFileName(name = 'upload.jpg') {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+async function uploadToSupabase(file, submissionId, itemKey, isIssue = false) {
+  const fileName = `${Date.now()}-${safeFileName(file.originalname || 'photo.jpg')}`;
+  const objectPath = `${submissionId}/${itemKey}/${isIssue ? 'issue' : 'regular'}/${fileName}`;
+
+  const { error: uploadError } = await supabase
+    .storage
+    .from(SUPABASE_BUCKET)
+    .upload(objectPath, file.buffer, {
+      contentType: file.mimetype || 'application/octet-stream',
+      upsert: false
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data: pub } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(objectPath);
+  return pub.publicUrl;
 }
 
 app.get('/', (_, res) => {
@@ -87,95 +72,131 @@ app.get('/submit', (_, res) => {
   res.redirect('/form');
 });
 
-app.post('/submit', upload.any(), (req, res) => {
-  const { property_id, cleaner_name, cleaning_date } = req.body;
+app.post('/submit', upload.any(), async (req, res) => {
+  try {
+    const { property_id, cleaner_name, cleaning_date } = req.body;
 
-  if (!property_id || !cleaner_name) {
-    return res.status(400).render('form', { schema, error: 'Property and cleaner name are required.', formData: req.body || {} });
-  }
+    if (!property_id || !cleaner_name) {
+      return res.status(400).render('form', { schema, error: 'Property and cleaner name are required.', formData: req.body || {} });
+    }
 
-  const filesByField = {};
-  (req.files || []).forEach(file => {
-    if (!filesByField[file.fieldname]) filesByField[file.fieldname] = [];
-    filesByField[file.fieldname].push(file);
-  });
+    const filesByField = {};
+    (req.files || []).forEach(file => {
+      if (!filesByField[file.fieldname]) filesByField[file.fieldname] = [];
+      filesByField[file.fieldname].push(file);
+    });
 
-  const items = allItems();
+    const items = allItems();
 
-  for (const item of items) {
-    const condition = req.body[`condition__${item.key}`];
-    if (item.requiresPhoto) {
-      const photos = filesByField[`photos__${item.key}`] || [];
-      if (photos.length < (item.minPhotos || 1)) {
-        return res.status(400).render('form', { schema, error: `Missing required photo(s) for: ${item.label}`, formData: req.body || {} });
+    for (const item of items) {
+      const condition = req.body[`condition__${item.key}`];
+      if (item.requiresPhoto) {
+        const photos = filesByField[`photos__${item.key}`] || [];
+        if (photos.length < (item.minPhotos || 1)) {
+          return res.status(400).render('form', { schema, error: `Missing required photo(s) for: ${item.label}`, formData: req.body || {} });
+        }
+      }
+
+      if (needsIssueEvidence(condition)) {
+        const issueNote = req.body[`issue_note__${item.key}`];
+        const issuePhotos = filesByField[`issue_photos__${item.key}`] || [];
+        if (!issueNote || !issueNote.trim()) {
+          return res.status(400).render('form', { schema, error: `Issue note required for: ${item.label}`, formData: req.body || {} });
+        }
+        if (!issuePhotos.length) {
+          return res.status(400).render('form', { schema, error: `Issue photo required for: ${item.label}`, formData: req.body || {} });
+        }
       }
     }
 
-    if (needsIssueEvidence(condition)) {
-      const issueNote = req.body[`issue_note__${item.key}`];
-      const issuePhotos = filesByField[`issue_photos__${item.key}`] || [];
-      if (!issueNote || !issueNote.trim()) {
-        return res.status(400).render('form', { schema, error: `Issue note required for: ${item.label}`, formData: req.body || {} });
+    const now = dayjs().toISOString();
+    const { data: submission, error: subErr } = await supabase
+      .from('submissions')
+      .insert({ property_id, cleaner_name, cleaning_date: cleaning_date || null, created_at: now })
+      .select()
+      .single();
+
+    if (subErr) throw subErr;
+    const submissionId = submission.id;
+
+    for (const item of items) {
+      const completed = !!req.body[`complete__${item.key}`];
+      const condition = req.body[`condition__${item.key}`] || null;
+      const notes = req.body[`notes__${item.key}`] || null;
+      const issueNote = req.body[`issue_note__${item.key}`] || null;
+
+      const { error: respErr } = await supabase.from('responses').insert({
+        submission_id: submissionId,
+        item_key: item.key,
+        completed,
+        condition,
+        notes,
+        issue_note: issueNote
+      });
+      if (respErr) throw respErr;
+
+      for (const file of filesByField[`photos__${item.key}`] || []) {
+        const publicUrl = await uploadToSupabase(file, submissionId, item.key, false);
+        const { error: photoErr } = await supabase.from('photos').insert({
+          submission_id: submissionId,
+          item_key: item.key,
+          file_path: publicUrl,
+          original_name: file.originalname,
+          is_issue: false,
+          created_at: now
+        });
+        if (photoErr) throw photoErr;
       }
-      if (!issuePhotos.length) {
-        return res.status(400).render('form', { schema, error: `Issue photo required for: ${item.label}`, formData: req.body || {} });
+
+      for (const file of filesByField[`issue_photos__${item.key}`] || []) {
+        const publicUrl = await uploadToSupabase(file, submissionId, item.key, true);
+        const { error: photoErr } = await supabase.from('photos').insert({
+          submission_id: submissionId,
+          item_key: item.key,
+          file_path: publicUrl,
+          original_name: file.originalname,
+          is_issue: true,
+          created_at: now
+        });
+        if (photoErr) throw photoErr;
       }
     }
+
+    res.redirect(`/submitted/${submissionId}`);
+  } catch (err) {
+    console.error('Submit error:', err);
+    res.status(500).render('form', { schema, error: `Submit failed: ${err.message}`, formData: req.body || {} });
   }
-
-  const now = dayjs().toISOString();
-  const insertSubmission = db.prepare('INSERT INTO submissions (property_id, cleaner_name, cleaning_date, created_at) VALUES (?, ?, ?, ?)');
-  const submissionId = insertSubmission.run(property_id, cleaner_name, cleaning_date || null, now).lastInsertRowid;
-
-  const insertResponse = db.prepare(
-    'INSERT INTO responses (submission_id, item_key, completed, condition, notes, issue_note) VALUES (?, ?, ?, ?, ?, ?)'
-  );
-  const insertPhoto = db.prepare(
-    'INSERT INTO photos (submission_id, item_key, file_path, original_name, is_issue, created_at) VALUES (?, ?, ?, ?, ?, ?)'
-  );
-
-  for (const item of items) {
-    const completed = req.body[`complete__${item.key}`] ? 1 : 0;
-    const condition = req.body[`condition__${item.key}`] || null;
-    const notes = req.body[`notes__${item.key}`] || null;
-    const issueNote = req.body[`issue_note__${item.key}`] || null;
-
-    insertResponse.run(submissionId, item.key, completed, condition, notes, issueNote);
-
-    (filesByField[`photos__${item.key}`] || []).forEach(file => {
-      insertPhoto.run(submissionId, item.key, `/uploads/${path.basename(file.path)}`, file.originalname, 0, now);
-    });
-
-    (filesByField[`issue_photos__${item.key}`] || []).forEach(file => {
-      insertPhoto.run(submissionId, item.key, `/uploads/${path.basename(file.path)}`, file.originalname, 1, now);
-    });
-  }
-
-  res.redirect(`/submitted/${submissionId}`);
 });
 
-app.get('/submitted/:id', (req, res) => {
-  const submission = db.prepare('SELECT * FROM submissions WHERE id = ?').get(req.params.id);
+app.get('/submitted/:id', async (req, res) => {
+  const { data: submission } = await supabase.from('submissions').select('*').eq('id', req.params.id).single();
   if (!submission) return res.status(404).send('Submission not found');
   res.render('submitted', { submission, schema });
 });
 
-app.get('/admin', (_, res) => {
-  const submissions = db
-    .prepare('SELECT * FROM submissions ORDER BY created_at DESC LIMIT 200')
-    .all();
-  res.render('admin', { submissions, schema });
+app.get('/admin', async (_, res) => {
+  const { data: submissions, error } = await supabase
+    .from('submissions')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (error) return res.status(500).send(error.message);
+  res.render('admin', { submissions: submissions || [], schema });
 });
 
-app.get('/admin/submissions/:id', (req, res) => {
-  const submission = db.prepare('SELECT * FROM submissions WHERE id = ?').get(req.params.id);
+app.get('/admin/submissions/:id', async (req, res) => {
+  const { data: submission } = await supabase.from('submissions').select('*').eq('id', req.params.id).single();
   if (!submission) return res.status(404).send('Submission not found');
 
-  const responses = db.prepare('SELECT * FROM responses WHERE submission_id = ?').all(req.params.id);
-  const photos = db.prepare('SELECT * FROM photos WHERE submission_id = ?').all(req.params.id);
+  const [{ data: responses }, { data: photos }] = await Promise.all([
+    supabase.from('responses').select('*').eq('submission_id', req.params.id),
+    supabase.from('photos').select('*').eq('submission_id', req.params.id)
+  ]);
 
-  const responseMap = Object.fromEntries(responses.map(r => [r.item_key, r]));
-  const photoMap = photos.reduce((acc, p) => {
+  const responseMap = Object.fromEntries((responses || []).map(r => [r.item_key, r]));
+  const photoMap = (photos || []).reduce((acc, p) => {
     if (!acc[p.item_key]) acc[p.item_key] = { regular: [], issue: [] };
     acc[p.item_key][p.is_issue ? 'issue' : 'regular'].push(p);
     return acc;

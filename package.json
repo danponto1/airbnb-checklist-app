@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "better-sqlite3": "^12.6.2",
+    "@supabase/supabase-js": "^2.57.4",
     "dayjs": "^1.11.19",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
