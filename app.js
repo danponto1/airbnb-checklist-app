@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const dayjs = require('dayjs');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
@@ -12,16 +13,25 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || 'checklist-photos';
 
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || crypto.randomBytes(24).toString('hex');
+const ADMIN_COOKIE_NAME = 'checklist_admin';
+
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
   process.exit(1);
+}
+
+if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
+  console.warn('Admin auth env vars missing: ADMIN_USERNAME / ADMIN_PASSWORD. Admin routes will be inaccessible.');
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false }
 });
 
-const schema = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.schema.json'), 'utf8'));
+const rawSchema = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.schema.json'), 'utf8'));
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -30,7 +40,22 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 
-function allItems() {
+function getChecklistForProperty(propertyId) {
+  const sections = (rawSchema.sections || []).map(section => ({
+    ...section,
+    items: (section.items || []).filter(item => {
+      if (!item.propertyIds || !Array.isArray(item.propertyIds) || item.propertyIds.length === 0) return true;
+      return item.propertyIds.includes(propertyId);
+    })
+  })).filter(section => section.items.length > 0);
+
+  return {
+    properties: rawSchema.properties || [],
+    sections
+  };
+}
+
+function allItems(schema) {
   return schema.sections.flatMap(section => section.items.map(item => ({ ...item, sectionId: section.id, sectionName: section.name })));
 }
 
@@ -42,17 +67,42 @@ function safeFileName(name = 'upload.jpg') {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
+function parseCookies(req) {
+  const header = req.headers.cookie || '';
+  return header.split(';').reduce((acc, pair) => {
+    const idx = pair.indexOf('=');
+    if (idx === -1) return acc;
+    const key = pair.slice(0, idx).trim();
+    const value = pair.slice(idx + 1).trim();
+    acc[key] = decodeURIComponent(value);
+    return acc;
+  }, {});
+}
+
+function makeAdminToken() {
+  return crypto.createHmac('sha256', ADMIN_SESSION_SECRET).update(`${ADMIN_USERNAME}:${ADMIN_PASSWORD}`).digest('hex');
+}
+
+function isAdminAuthenticated(req) {
+  const cookies = parseCookies(req);
+  const token = cookies[ADMIN_COOKIE_NAME];
+  if (!token || !ADMIN_USERNAME || !ADMIN_PASSWORD) return false;
+  return token === makeAdminToken();
+}
+
+function requireAdminAuth(req, res, next) {
+  if (isAdminAuthenticated(req)) return next();
+  return res.redirect(`/admin/login?next=${encodeURIComponent(req.originalUrl || '/admin')}`);
+}
+
 async function uploadToSupabase(file, submissionId, itemKey, isIssue = false) {
   const fileName = `${Date.now()}-${safeFileName(file.originalname || 'photo.jpg')}`;
   const objectPath = `${submissionId}/${itemKey}/${isIssue ? 'issue' : 'regular'}/${fileName}`;
 
-  const { error: uploadError } = await supabase
-    .storage
-    .from(SUPABASE_BUCKET)
-    .upload(objectPath, file.buffer, {
-      contentType: file.mimetype || 'application/octet-stream',
-      upsert: false
-    });
+  const { error: uploadError } = await supabase.storage.from(SUPABASE_BUCKET).upload(objectPath, file.buffer, {
+    contentType: file.mimetype || 'application/octet-stream',
+    upsert: false
+  });
 
   if (uploadError) throw uploadError;
 
@@ -64,8 +114,10 @@ app.get('/', (_, res) => {
   res.redirect('/form');
 });
 
-app.get('/form', (_, res) => {
-  res.render('form', { schema, error: null, formData: {} });
+app.get('/form', (req, res) => {
+  const activePropertyId = req.query.property_id || '';
+  const schema = getChecklistForProperty(activePropertyId || null);
+  res.render('form', { schema, activePropertyId, error: null, formData: {} });
 });
 
 app.get('/submit', (_, res) => {
@@ -75,9 +127,10 @@ app.get('/submit', (_, res) => {
 app.post('/submit', upload.any(), async (req, res) => {
   try {
     const { property_id, cleaner_name, cleaning_date } = req.body;
+    const schema = getChecklistForProperty(property_id || null);
 
     if (!property_id || !cleaner_name) {
-      return res.status(400).render('form', { schema, error: 'Property and cleaner name are required.', formData: req.body || {} });
+      return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: 'Property and cleaner name are required.', formData: req.body || {} });
     }
 
     const filesByField = {};
@@ -86,14 +139,14 @@ app.post('/submit', upload.any(), async (req, res) => {
       filesByField[file.fieldname].push(file);
     });
 
-    const items = allItems();
+    const items = allItems(schema);
 
     for (const item of items) {
       const condition = req.body[`condition__${item.key}`];
       if (item.requiresPhoto) {
         const photos = filesByField[`photos__${item.key}`] || [];
         if (photos.length < (item.minPhotos || 1)) {
-          return res.status(400).render('form', { schema, error: `Missing required photo(s) for: ${item.label}`, formData: req.body || {} });
+          return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: `Missing required photo(s) for: ${item.label}`, formData: req.body || {} });
         }
       }
 
@@ -101,10 +154,10 @@ app.post('/submit', upload.any(), async (req, res) => {
         const issueNote = req.body[`issue_note__${item.key}`];
         const issuePhotos = filesByField[`issue_photos__${item.key}`] || [];
         if (!issueNote || !issueNote.trim()) {
-          return res.status(400).render('form', { schema, error: `Issue note required for: ${item.label}`, formData: req.body || {} });
+          return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: `Issue note required for: ${item.label}`, formData: req.body || {} });
         }
         if (!issuePhotos.length) {
-          return res.status(400).render('form', { schema, error: `Issue photo required for: ${item.label}`, formData: req.body || {} });
+          return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: `Issue photo required for: ${item.label}`, formData: req.body || {} });
         }
       }
     }
@@ -165,17 +218,44 @@ app.post('/submit', upload.any(), async (req, res) => {
     res.redirect(`/submitted/${submissionId}`);
   } catch (err) {
     console.error('Submit error:', err);
-    res.status(500).render('form', { schema, error: `Submit failed: ${err.message}`, formData: req.body || {} });
+    const propertyId = req.body?.property_id || '';
+    const schema = getChecklistForProperty(propertyId || null);
+    res.status(500).render('form', { schema, activePropertyId: propertyId, error: `Submit failed: ${err.message}`, formData: req.body || {} });
   }
 });
 
 app.get('/submitted/:id', async (req, res) => {
   const { data: submission } = await supabase.from('submissions').select('*').eq('id', req.params.id).single();
   if (!submission) return res.status(404).send('Submission not found');
+  const schema = getChecklistForProperty(submission.property_id);
   res.render('submitted', { submission, schema });
 });
 
-app.get('/admin', async (_, res) => {
+app.get('/admin/login', (req, res) => {
+  res.render('admin-login', { error: null, next: req.query.next || '/admin' });
+});
+
+app.post('/admin/login', (req, res) => {
+  const { username, password, next } = req.body;
+  if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
+    return res.status(500).render('admin-login', { error: 'Admin credentials are not configured on server.', next: next || '/admin' });
+  }
+
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    return res.status(401).render('admin-login', { error: 'Invalid username or password.', next: next || '/admin' });
+  }
+
+  const token = makeAdminToken();
+  res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
+  return res.redirect(next || '/admin');
+});
+
+app.get('/admin/logout', (req, res) => {
+  res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+  res.redirect('/admin/login');
+});
+
+app.get('/admin', requireAdminAuth, async (_, res) => {
   const { data: submissions, error } = await supabase
     .from('submissions')
     .select('*')
@@ -183,10 +263,10 @@ app.get('/admin', async (_, res) => {
     .limit(200);
 
   if (error) return res.status(500).send(error.message);
-  res.render('admin', { submissions: submissions || [], schema });
+  res.render('admin', { submissions: submissions || [], schema: rawSchema });
 });
 
-app.get('/admin/submissions/:id', async (req, res) => {
+app.get('/admin/submissions/:id', requireAdminAuth, async (req, res) => {
   const { data: submission } = await supabase.from('submissions').select('*').eq('id', req.params.id).single();
   if (!submission) return res.status(404).send('Submission not found');
 
@@ -202,6 +282,7 @@ app.get('/admin/submissions/:id', async (req, res) => {
     return acc;
   }, {});
 
+  const schema = getChecklistForProperty(submission.property_id);
   res.render('submission-detail', { submission, schema, responseMap, photoMap });
 });
 

@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Login</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 24px; max-width: 460px;">
+  <h1>Admin Login</h1>
+  <p><a href="/form">← Back to cleaner form</a></p>
+
+  <% if (error) { %>
+    <div style="background:#ffe9e9;border:1px solid #ffc2c2;padding:10px;border-radius:8px;margin-bottom:12px;color:#8f2020;"><%= error %></div>
+  <% } %>
+
+  <form method="post" action="/admin/login" style="display:grid; gap:10px;">
+    <input type="hidden" name="next" value="<%= next || '/admin' %>" />
+    <label>
+      Username
+      <input name="username" type="text" required style="width:100%; padding:10px; margin-top:6px;" />
+    </label>
+    <label>
+      Password
+      <input name="password" type="password" required style="width:100%; padding:10px; margin-top:6px;" />
+    </label>
+    <button type="submit" style="padding:10px 14px;">Sign in</button>
+  </form>
+</body>
+</html>

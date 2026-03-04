@@ -153,10 +153,10 @@
         <div class="grid-3">
           <div class="field">
             <label>Property</label>
-            <select name="property_id" required>
+            <select name="property_id" id="property_id" required onchange="onPropertyChange(this.value)">
               <option value="">Select property</option>
               <% schema.properties.forEach(p => { %>
-                <option value="<%= p.id %>" <%= fd.property_id === p.id ? 'selected' : '' %>><%= p.name %></option>
+                <option value="<%= p.id %>" <%= ((fd.property_id || activePropertyId) === p.id) ? 'selected' : '' %>><%= p.name %></option>
               <% }) %>
             </select>
           </div>
@@ -276,7 +276,12 @@
 
   <script>
     const form = document.getElementById('checklist-form');
-    const DRAFT_KEY = 'airbnb-checklist-draft-v1';
+    const propertyField = document.getElementById('property_id');
+
+    function draftKeyForProperty() {
+      const id = propertyField?.value || 'none';
+      return `airbnb-checklist-draft-v1:${id}`;
+    }
 
     function toggleIssueBox(selectEl) {
       const key = selectEl.dataset.item;
@@ -324,13 +329,13 @@
 
     function saveDraft() {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(collectDraft()));
+        localStorage.setItem(draftKeyForProperty(), JSON.stringify(collectDraft()));
       } catch (_) {}
     }
 
     function loadDraft() {
       try {
-        const raw = localStorage.getItem(DRAFT_KEY);
+        const raw = localStorage.getItem(draftKeyForProperty());
         if (!raw) return;
         const draft = JSON.parse(raw);
         applyDraft(draft);
@@ -338,7 +343,12 @@
     }
 
     function clearDraft() {
-      try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+      try { localStorage.removeItem(draftKeyForProperty()); } catch (_) {}
+    }
+
+    function onPropertyChange(propertyId) {
+      if (!propertyId) return;
+      window.location.href = `/form?property_id=${encodeURIComponent(propertyId)}`;
     }
 
     form.addEventListener('input', saveDraft);
