@@ -32,6 +32,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 });
 
 const rawSchema = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.schema.json'), 'utf8'));
+const schema5378 = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.5378.json'), 'utf8'));
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -41,17 +42,10 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 
 function getChecklistForProperty(propertyId) {
-  const sections = (rawSchema.sections || []).map(section => ({
-    ...section,
-    items: (section.items || []).filter(item => {
-      if (!item.propertyIds || !Array.isArray(item.propertyIds) || item.propertyIds.length === 0) return true;
-      return item.propertyIds.includes(propertyId);
-    })
-  })).filter(section => section.items.length > 0);
-
+  const selected = propertyId === 'big-tree-5378' ? schema5378 : rawSchema;
   return {
     properties: rawSchema.properties || [],
-    sections
+    sections: selected.sections || []
   };
 }
 
@@ -61,6 +55,29 @@ function allItems(schema) {
 
 function needsIssueEvidence(condition) {
   return ['Damaged', 'Not Working'].includes(condition);
+}
+
+function requiresPhotoForItem(item, condition) {
+  if (item.requiresPhoto) return true;
+  if (item.optionalPhoto && item.photoRequiredUnlessGood) {
+    const okayValue = item.photoOptionalWhen || 'Good';
+    return !!condition && condition !== okayValue;
+  }
+  return false;
+}
+
+function buildCombinedNotes(item, body) {
+  const parts = [];
+  const baseNotes = body[`notes__${item.key}`];
+  if (baseNotes && baseNotes.trim()) parts.push(baseNotes.trim());
+
+  (item.extraFields || []).forEach(field => {
+    const value = body[`extra__${item.key}__${field.name}`];
+    if (value === undefined || value === null || `${value}`.trim() === '') return;
+    parts.push(`${field.label}: ${value}`);
+  });
+
+  return parts.length ? parts.join('\n') : null;
 }
 
 function safeFileName(name = 'upload.jpg') {
@@ -143,7 +160,12 @@ app.post('/submit', upload.any(), async (req, res) => {
 
     for (const item of items) {
       const condition = req.body[`condition__${item.key}`];
-      if (item.requiresPhoto) {
+
+      if (item.requiredCondition && !condition) {
+        return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: `Please answer: ${item.label}`, formData: req.body || {} });
+      }
+
+      if (requiresPhotoForItem(item, condition)) {
         const photos = filesByField[`photos__${item.key}`] || [];
         if (photos.length < (item.minPhotos || 1)) {
           return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: `Missing required photo(s) for: ${item.label}`, formData: req.body || {} });
@@ -175,7 +197,7 @@ app.post('/submit', upload.any(), async (req, res) => {
     for (const item of items) {
       const completed = !!req.body[`complete__${item.key}`];
       const condition = req.body[`condition__${item.key}`] || null;
-      const notes = req.body[`notes__${item.key}`] || null;
+      const notes = buildCombinedNotes(item, req.body);
       const issueNote = req.body[`issue_note__${item.key}`] || null;
 
       const { error: respErr } = await supabase.from('responses').insert({

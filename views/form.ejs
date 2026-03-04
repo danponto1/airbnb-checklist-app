@@ -225,14 +225,25 @@
 
                     <div class="item-body">
                       <% if (item.hasCondition) { %>
-                        <div class="field">
-                          <label>Condition</label>
-                          <select name="condition__<%= item.key %>" class="condition" data-item="<%= item.key %>">
-                            <option value="">Select</option>
-                            <% item.conditionOptions.forEach(c => { %>
-                              <option value="<%= c %>" <%= fd[`condition__${item.key}`] === c ? 'selected' : '' %>><%= c %></option>
-                            <% }) %>
-                          </select>
+                        <div class="field" style="grid-column: 1 / -1;">
+                          <label><%= item.conditionLabel || 'Condition' %></label>
+                          <% if (item.inputType === 'radio') { %>
+                            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                              <% item.conditionOptions.forEach(c => { %>
+                                <label style="display:flex; align-items:center; gap:6px;">
+                                  <input type="radio" name="condition__<%= item.key %>" value="<%= c %>" class="condition" data-item="<%= item.key %>" <%= fd[`condition__${item.key}`] === c ? 'checked' : '' %> />
+                                  <span><%= c %></span>
+                                </label>
+                              <% }) %>
+                            </div>
+                          <% } else { %>
+                            <select name="condition__<%= item.key %>" class="condition" data-item="<%= item.key %>">
+                              <option value="">Select</option>
+                              <% item.conditionOptions.forEach(c => { %>
+                                <option value="<%= c %>" <%= fd[`condition__${item.key}`] === c ? 'selected' : '' %>><%= c %></option>
+                              <% }) %>
+                            </select>
+                          <% } %>
                         </div>
                       <% } %>
 
@@ -241,7 +252,34 @@
                           <label>Required photo(s) (<%= item.minPhotos || 1 %>+)</label>
                           <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple />
                         </div>
+                      <% } else if (item.optionalPhoto) { %>
+                        <div class="field">
+                          <details>
+                            <summary style="cursor:pointer; color:var(--muted);">📷 Optional photo</summary>
+                            <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple style="margin-top:8px;" />
+                          </details>
+                        </div>
                       <% } %>
+
+                      <% (item.extraFields || []).forEach(extra => { %>
+                        <div class="field">
+                          <label><%= extra.label %></label>
+                          <% if (extra.type === 'number') { %>
+                            <input type="number" name="extra__<%= item.key %>__<%= extra.name %>" value="<%= fd[`extra__${item.key}__${extra.name}`] || '' %>" min="0" />
+                          <% } else if (extra.type === 'radio') { %>
+                            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                              <% (extra.options || []).forEach(opt => { %>
+                                <label style="display:flex; align-items:center; gap:6px;">
+                                  <input type="radio" name="extra__<%= item.key %>__<%= extra.name %>" value="<%= opt %>" <%= fd[`extra__${item.key}__${extra.name}`] === opt ? 'checked' : '' %> />
+                                  <span><%= opt %></span>
+                                </label>
+                              <% }) %>
+                            </div>
+                          <% } else { %>
+                            <input type="text" name="extra__<%= item.key %>__<%= extra.name %>" value="<%= fd[`extra__${item.key}__${extra.name}`] || '' %>" />
+                          <% } %>
+                        </div>
+                      <% }) %>
 
                       <div class="field" style="grid-column: 1 / -1;">
                         <label>Notes (optional)</label>
@@ -285,7 +323,12 @@
 
     function toggleIssueBox(selectEl) {
       const key = selectEl.dataset.item;
-      const show = ['Damaged','Not Working'].includes(selectEl.value);
+      let value = selectEl.value;
+      if (selectEl.type === 'radio') {
+        const checked = document.querySelector(`input.condition[data-item="${key}"]:checked`);
+        value = checked ? checked.value : '';
+      }
+      const show = ['Damaged','Not Working'].includes(value);
       const box = document.getElementById(`issue-box-${key}`);
       if (box) box.style.display = show ? 'block' : 'none';
     }

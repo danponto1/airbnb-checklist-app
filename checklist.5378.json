@@ -1,0 +1,149 @@
+{
+  "sections": [
+    {
+      "id": "initial-walkthrough",
+      "name": "First Question",
+      "items": [
+        {
+          "key": "walkthrough-damage-check",
+          "label": "Please walk around first and take any photos of broken, missing or damaged items.",
+          "hasCondition": true,
+          "inputType": "radio",
+          "requiredCondition": true,
+          "conditionLabel": "Initial walk-through result",
+          "conditionOptions": ["Nothing Damaged", "Damaged", "Not Working"],
+          "notesLabel": "Notes (required only if issues found)",
+          "optionalPhoto": true,
+          "photoRequiredUnlessGood": true,
+          "photoOptionalWhen": "Nothing Damaged"
+        }
+      ]
+    },
+    {
+      "id": "interior",
+      "name": "Interior",
+      "instructions": [
+        "Checkbox completion is the most important item.",
+        "Optional photo fields are compact — open only when needed."
+      ],
+      "items": [
+        { "key": "bedroom1-floor", "label": "Bedroom 1: Vacuum/mop/sweep floor", "optionalPhoto": true },
+        { "key": "bedroom1-bed-setup", "label": "Bedroom 1/Bed: Remove sheets, inspect mattress pad/pillows/comforters for stains, make bed with clean linens", "optionalPhoto": true },
+        { "key": "bedroom1-left-items", "label": "Bedroom 1: Look under bed + open all drawers for left items (tag and return to office)", "optionalPhoto": true },
+        { "key": "bedroom1-bedframe", "label": "Bedroom 1: Condition of bed frame and headboard", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "optionalPhoto": true, "photoRequiredUnlessGood": true },
+        { "key": "bedroom1-photo", "label": "Bedroom 1: Entire bedroom once cleaned", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "bedroom2-floor", "label": "Bedroom 2: Vacuum/mop/sweep floor", "optionalPhoto": true },
+        { "key": "bedroom2-bed-setup", "label": "Bedroom 2/Bed: Remove sheets, inspect mattress pad/pillows/comforters for stains, make bed with clean linens", "optionalPhoto": true },
+        { "key": "bedroom2-left-items", "label": "Bedroom 2: Look under bed + open all drawers for left items (tag and return to office)", "optionalPhoto": true },
+        { "key": "bedroom2-bedframe", "label": "Bedroom 2: Condition of bed frame and headboard", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "optionalPhoto": true, "photoRequiredUnlessGood": true },
+        { "key": "bedroom2-photo", "label": "Bedroom 2: Entire bedroom once cleaned", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "bedroom3-floor", "label": "Bedroom 3: Vacuum/mop/sweep floor", "optionalPhoto": true },
+        { "key": "bedroom3-bed-setup", "label": "Bedroom 3/Bed: Remove sheets, inspect mattress pad/pillows/comforters for stains, make bed with clean linens", "optionalPhoto": true },
+        { "key": "bedroom3-left-items", "label": "Bedroom 3: Look under bed + open all drawers for left items (tag and return to office)", "optionalPhoto": true },
+        { "key": "bedroom3-bedframe", "label": "Bedroom 3: Condition of bed frame and headboard", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "optionalPhoto": true, "photoRequiredUnlessGood": true },
+        { "key": "bedroom3-photo", "label": "Bedroom 3: Entire bedroom once cleaned", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "matching-towels-sheets", "label": "Matching towels and sheets on all beds and bathrooms", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "livingroom-main", "label": "Living Room: Wipe down all furniture, vacuum/mop/sweep", "optionalPhoto": true },
+        { "key": "livingroom-couch", "label": "Living Room/Couch: Remove all cushions to discard crumbs, place decorative pillows, vacuum under couch", "optionalPhoto": true },
+        { "key": "livingroom-tv", "label": "Living Room/Smart TV: Wipe fingerprints/dust, check remote batteries, sanitize remotes, turn on TV and verify display", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "optionalPhoto": true, "photoRequiredUnlessGood": true },
+
+        { "key": "kitchen-trash", "label": "Kitchen: Empty trash can and replace with new bags", "optionalPhoto": true },
+        { "key": "kitchen-sanitize", "label": "Kitchen: Sanitize appliances and clean all surfaces (inside/outside cabinets, counters, etc.)", "optionalPhoto": true },
+        { "key": "kitchen-restock", "label": "Kitchen: Restock starter sets (1 sponge, 10 dishwasher packets, 3 paper towel rolls, splenda) + coffee/sugar/creamer/supplies", "optionalPhoto": true },
+        { "key": "kitchen-photo", "label": "Kitchen: Entire kitchen after cleaning", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "kitchen-dishwasher-main", "label": "Kitchen/Dishwasher: Empty dishes, ensure door closes tightly, fill rinse aid", "optionalPhoto": true },
+        { "key": "kitchen-dishwasher-photo", "label": "Kitchen/Dishwasher: Photo of inside and outside cleaned", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "kitchen-fridge-clean", "label": "Kitchen/Refrigerator: Remove all food, clean shelves/drawers, wipe front", "optionalPhoto": true },
+        { "key": "kitchen-fridge-temp", "label": "Kitchen/Refrigerator: Temperature on normal setting", "optionalPhoto": true },
+        { "key": "kitchen-fridge-photo", "label": "Kitchen/Refrigerator: Photo of fridge + freezer (inside and outside)", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "kitchen-sink", "label": "Kitchen/Sink: Wipe sink, polish faucet, clean backsplash", "optionalPhoto": true },
+        { "key": "kitchen-disposal", "label": "Kitchen/Garbage disposal: Run with dish soap; clear debris and odors", "optionalPhoto": true },
+
+        { "key": "kitchen-microwave-main", "label": "Kitchen/Microwave: Wipe front/back, clean tray, ensure buttons function", "optionalPhoto": true },
+        { "key": "kitchen-microwave-photo", "label": "Kitchen/Microwave: Photo inside and outside", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "kitchen-toaster", "label": "Kitchen/Toaster: Remove crumbs and wipe under toaster", "optionalPhoto": true },
+        { "key": "kitchen-stovetop", "label": "Kitchen/Stove top: Clean thoroughly and test all burners", "optionalPhoto": true },
+        { "key": "kitchen-oven-main", "label": "Kitchen/Oven: Clean inside/outside; report if damaged or not working", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "optionalPhoto": true, "photoRequiredUnlessGood": true },
+        { "key": "kitchen-oven-photo", "label": "Kitchen/Oven: Photo of entire stove top + inside/outside of oven", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "laundry-room-items", "label": "Laundry room: Return all items to laundry if needed (high chair/gates)", "requiresPhoto": true, "minPhotos": 1, "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"] },
+        { "key": "laundry-hangers", "label": "Laundry room: Get rid of guest hangers that don’t match", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "laundry-machines-main", "label": "Laundry room/Washer/Dryer: Empty both, clean lint trap, leave washer door/lip open", "optionalPhoto": true },
+        { "key": "laundry-machines-photo", "label": "Laundry room/Washer/Dryer: Required photo", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "bathroom1-waste", "label": "Bathroom 1: Empty waste basket and replace bag", "optionalPhoto": true },
+        { "key": "bathroom1-amenities", "label": "Bathroom 1: Amenities have been replaced?", "hasCondition": true, "inputType": "radio", "conditionOptions": ["Yes", "No"] },
+        { "key": "bathroom1-shower", "label": "Bathroom 1/Shower/Bathtub: Clean, scrub, sanitize, remove mildew/mold, verify shower head + drain", "optionalPhoto": true },
+        { "key": "bathroom1-toilet-main", "label": "Bathroom 1/Toilet: Clean, scrub, sanitize", "optionalPhoto": true },
+        { "key": "bathroom1-toilet-photo", "label": "Bathroom 1/Toilet: Flush check + seat down (required photo)", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "bathroom1-sink-main", "label": "Bathroom 1/Sink: Clean/sanitize, verify hot/cold water + drain, polish faucet", "optionalPhoto": true },
+        { "key": "bathroom1-sink-photo", "label": "Bathroom 1: Entire bathroom after cleaning (required photo)", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "bathroom2-waste", "label": "Bathroom 2: Empty waste basket and replace bag", "optionalPhoto": true },
+        { "key": "bathroom2-amenities", "label": "Bathroom 2: Amenities have been replaced?", "hasCondition": true, "inputType": "radio", "conditionOptions": ["Yes", "No"] },
+        { "key": "bathroom2-shower", "label": "Bathroom 2/Shower/Bathtub: Clean, scrub, sanitize, remove mildew/mold, verify shower head + drain", "optionalPhoto": true },
+        { "key": "bathroom2-toilet-main", "label": "Bathroom 2/Toilet: Clean, scrub, sanitize", "optionalPhoto": true },
+        { "key": "bathroom2-toilet-photo", "label": "Bathroom 2/Toilet: Flush check + seat down (required photo)", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "bathroom2-sink-main", "label": "Bathroom 2/Sink: Clean/sanitize, verify hot/cold water + drain, polish faucet", "optionalPhoto": true },
+        { "key": "bathroom2-sink-photo", "label": "Bathroom 2: Entire bathroom after cleaning (required photo)", "requiresPhoto": true, "minPhotos": 1 },
+
+        { "key": "front-door", "label": "Front door condition", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1 }
+      ]
+    },
+    {
+      "id": "exterior",
+      "name": "Exterior",
+      "items": [
+        { "key": "deck-main", "label": "Deck: Sweep", "optionalPhoto": true },
+        { "key": "deck-furniture", "label": "Deck: Wipe front/top/barn furniture", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "deck-patio", "label": "Deck/Patio Furniture: Wipe down and return to correct place", "optionalPhoto": true },
+        { "key": "grill", "label": "Grill: Scrape grates with wire brush", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "grill-dirty-note", "label": "Please let us know if the grill is overly dirty", "optionalPhoto": false },
+        { "key": "firepit", "label": "Firepit area cleaned and chairs in proper place", "optionalPhoto": true },
+
+        { "key": "dart-board", "label": "Dart board: Condition", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1, "extraFields": [
+          { "name": "dart_count", "label": "How many darts are present?", "type": "number" },
+          { "name": "cornhole_bags", "label": "Are there at least 8 bags for Cornhole?", "type": "radio", "options": ["Yes", "No"] },
+          { "name": "can_jam_frisbee", "label": "Is there a frisbee for the Can Jam game?", "type": "radio", "options": ["Yes", "No"] },
+          { "name": "propane_check", "label": "Please lift propane tank to confirm there is gas in it", "type": "radio", "options": ["Yes", "No"] }
+        ] },
+        { "key": "dart-board-clean", "label": "Dart board: Clean dart board, wipe chalk board, check darts", "optionalPhoto": true },
+
+        { "key": "garage-condition", "label": "Garage: Condition", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "garage-can", "label": "Garage Can", "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "mini-fridge-condition", "label": "Mini Fridge: Condition", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "mini-fridge-clean", "label": "Mini Fridge: Clean garage fridge", "optionalPhoto": true },
+        { "key": "minibar-condition", "label": "Minibar: Condition", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "pingpong-condition", "label": "Ping Pong Table: Condition", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "pingpong-clean", "label": "Ping Pong Table: Clean and check inventory", "optionalPhoto": true },
+
+        { "key": "door-mats-condition", "label": "Door mats: Condition", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1, "extraFields": [
+          { "name": "mat_count", "label": "How many door mats are present?", "type": "number" }
+        ] },
+        { "key": "door-mats-replace", "label": "Door mats: Check and replace dirty floor mats", "optionalPhoto": true },
+
+        { "key": "high-chair-condition", "label": "High Chair: Condition", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1 },
+        { "key": "high-chair-clean", "label": "High Chair: Wipe down high chairs", "optionalPhoto": true },
+
+        { "key": "exercise-clean", "label": "Exercise Room: Clean/wipe exercise area", "optionalPhoto": true },
+        { "key": "exercise-condition", "label": "Exercise Room: Condition", "hasCondition": true, "conditionOptions": ["Good", "Dirty", "Damaged", "Not Working"], "requiresPhoto": true, "minPhotos": 1 }
+      ]
+    },
+    {
+      "id": "before-leave",
+      "name": "Before You Leave",
+      "items": [
+        { "key": "secure-property", "label": "Secure property - lock all doors and windows", "optionalPhoto": true },
+        { "key": "windows-locked", "label": "Check that all windows were shut and locked", "hasCondition": true, "inputType": "radio", "conditionOptions": ["Yes", "No"], "optionalPhoto": true }
+      ]
+    }
+  ]
+}
