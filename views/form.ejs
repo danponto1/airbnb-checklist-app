@@ -181,10 +181,10 @@
 
       <% schema.sections.forEach(section => { %>
         <div class="card">
-          <h2 class="section-title"><%= section.name %></h2>
+          <h2 class="section-title"><%= tSectionName(section, lang) %></h2>
           <% if (section.instructions) { %>
             <ul class="instruction">
-              <% section.instructions.forEach(i => { %><li><%= i %></li><% }) %>
+              <% section.instructions.forEach(i => { %><li><%= tInstruction(i, lang) %></li><% }) %>
             </ul>
           <% } %>
 
@@ -228,13 +228,13 @@
                   <div class="item">
                     <div class="item-top">
                       <input type="checkbox" name="complete__<%= item.key %>" style="margin-top:2px;" <%= fd[`complete__${item.key}`] ? 'checked' : '' %> />
-                      <div class="item-title"><%= item.label %></div>
+                      <div class="item-title"><%= tItemLabel(item, lang) %></div>
                     </div>
 
                     <div class="item-body">
                       <% if (item.hasCondition) { %>
                         <div class="field" style="grid-column: 1 / -1;">
-                          <label><%= item.conditionLabel || i18n.condition %></label>
+                          <label><%= tConditionLabel(item, lang, i18n.condition) %></label>
                           <% if (item.inputType === 'radio') { %>
                             <div style="display:flex; gap:12px; flex-wrap:wrap;">
                               <% item.conditionOptions.forEach(c => { %>
@@ -271,7 +271,7 @@
 
                       <% (item.extraFields || []).forEach(extra => { %>
                         <div class="field">
-                          <label><%= extra.label %></label>
+                          <label><%= tExtraLabel(extra, lang) %></label>
                           <% if (extra.type === 'number') { %>
                             <input type="number" name="extra__<%= item.key %>__<%= extra.name %>" value="<%= fd[`extra__${item.key}__${extra.name}`] || '' %>" min="0" />
                           <% } else if (extra.type === 'radio') { %>

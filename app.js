@@ -95,12 +95,149 @@ const OPTION_TRANSLATIONS = {
   }
 };
 
+const SECTION_TRANSLATIONS = {
+  es: {
+    'First Question': 'Primera pregunta',
+    Interior: 'Interior',
+    Exterior: 'Exterior',
+    'Before You Leave': 'Antes de irse'
+  }
+};
+
+const INSTRUCTION_TRANSLATIONS = {
+  es: {
+    'Checkbox completion is the most important item.': 'Marcar la casilla de completado es lo más importante.',
+    'Optional photo fields are compact — open only when needed.': 'Los campos de foto opcional son compactos: ábrelos solo cuando sea necesario.',
+    'Walk around first and take photos of any broken, missing, or damaged items.': 'Primero recorra la propiedad y tome fotos de cualquier artículo roto, faltante o dañado.'
+  }
+};
+
+const ITEM_TRANSLATIONS = {
+  es: {
+    'walkthrough-damage-check': 'Por favor, recorra primero la propiedad y tome fotos de cualquier artículo roto, faltante o dañado.',
+    'bedroom1-floor': 'Dormitorio 1: Aspirar/trapear/barrer el piso',
+    'bedroom1-bed-setup': 'Dormitorio 1/Cama: Retirar sábanas, revisar cubrecolchón/almohadas/edredones por manchas, hacer la cama con ropa limpia',
+    'bedroom1-left-items': 'Dormitorio 1: Revisar debajo de la cama y abrir todos los cajones por objetos olvidados (etiquetar y devolver a la oficina)',
+    'bedroom1-bedframe': 'Dormitorio 1: Estado de la estructura y cabecera de la cama',
+    'bedroom1-photo': 'Dormitorio 1: Foto del dormitorio completo una vez limpio',
+    'bedroom2-floor': 'Dormitorio 2: Aspirar/trapear/barrer el piso',
+    'bedroom2-bed-setup': 'Dormitorio 2/Cama: Retirar sábanas, revisar cubrecolchón/almohadas/edredones por manchas, hacer la cama con ropa limpia',
+    'bedroom2-left-items': 'Dormitorio 2: Revisar debajo de la cama y abrir todos los cajones por objetos olvidados (etiquetar y devolver a la oficina)',
+    'bedroom2-bedframe': 'Dormitorio 2: Estado de la estructura y cabecera de la cama',
+    'bedroom2-photo': 'Dormitorio 2: Foto del dormitorio completo una vez limpio',
+    'bedroom3-floor': 'Dormitorio 3: Aspirar/trapear/barrer el piso',
+    'bedroom3-bed-setup': 'Dormitorio 3/Cama: Retirar sábanas, revisar cubrecolchón/almohadas/edredones por manchas, hacer la cama con ropa limpia',
+    'bedroom3-left-items': 'Dormitorio 3: Revisar debajo de la cama y abrir todos los cajones por objetos olvidados (etiquetar y devolver a la oficina)',
+    'bedroom3-bedframe': 'Dormitorio 3: Estado de la estructura y cabecera de la cama',
+    'bedroom3-photo': 'Dormitorio 3: Foto del dormitorio completo una vez limpio',
+    'matching-towels-sheets': 'Toallas y sábanas que combinen en todas las camas y baños',
+    'livingroom-main': 'Sala: Limpiar todos los muebles y aspirar/trapear/barrer',
+    'livingroom-couch': 'Sala/Sofá: Retirar cojines para quitar migas, colocar cojines decorativos y aspirar debajo del sofá',
+    'livingroom-sleeper-sofa': 'Sala/Sofá cama: Abrir y retirar sábanas; dejar sábanas nuevas, almohadas y cobijas en el sofá',
+    'livingroom-tv': 'Sala/TV inteligente: Limpiar huellas/polvo, revisar baterías del control, desinfectar controles, encender TV y verificar pantalla',
+    'kitchen-trash': 'Cocina: Vaciar bote de basura y colocar bolsas nuevas',
+    'kitchen-sanitize': 'Cocina: Desinfectar electrodomésticos y limpiar todas las superficies (gabinetes por dentro/fuera, encimeras, etc.)',
+    'kitchen-restock': 'Cocina: Reabastecer kit inicial (1 esponja, 10 tabletas lavavajillas, 3 rollos de papel, splenda) + café/azúcar/crema/suministros',
+    'kitchen-photo': 'Cocina: Foto completa de la cocina una vez limpia',
+    'kitchen-dishwasher-main': 'Cocina/Lavavajillas: Vaciar platos, verificar que cierre bien la puerta, rellenar abrillantador',
+    'kitchen-dishwasher-photo': 'Cocina/Lavavajillas: Foto de interior y exterior limpios',
+    'kitchen-fridge-clean': 'Cocina/Refrigerador: Retirar toda la comida, limpiar repisas/cajones, limpiar frente',
+    'kitchen-fridge-temp': 'Cocina/Refrigerador: Temperatura en nivel normal',
+    'kitchen-fridge-photo': 'Cocina/Refrigerador: Foto de refrigerador + congelador (interior y exterior)',
+    'kitchen-sink': 'Cocina/Fregadero: Limpiar fregadero, pulir grifo, limpiar salpicadero',
+    'kitchen-disposal': 'Cocina/Triturador: Encender con jabón para platos; eliminar residuos y olores',
+    'kitchen-microwave-main': 'Cocina/Microondas: Limpiar frente/parte trasera, limpiar bandeja, verificar botones',
+    'kitchen-microwave-photo': 'Cocina/Microondas: Foto interior y exterior',
+    'kitchen-toaster': 'Cocina/Tostadora: Retirar migas y limpiar debajo',
+    'kitchen-stovetop': 'Cocina/Estufa: Limpiar a fondo y probar todos los quemadores',
+    'kitchen-oven-main': 'Cocina/Horno: Limpiar interior/exterior; reportar si está dañado o no funciona',
+    'kitchen-oven-photo': 'Cocina/Horno: Foto de la estufa completa + interior/exterior del horno',
+    'laundry-room-items': 'Lavandería: Regresar artículos a lavandería si es necesario (silla alta/rejas)',
+    'laundry-hangers': 'Lavandería: Retirar ganchos de huéspedes que no combinen',
+    'laundry-machines-main': 'Lavandería/Lavadora-Secadora: Vaciar ambas, limpiar filtro de pelusa, dejar puerta de lavadora abierta',
+    'laundry-machines-photo': 'Lavandería/Lavadora-Secadora: Foto requerida',
+    'bathroom1-waste': 'Baño 1: Vaciar basurero y reemplazar bolsa',
+    'bathroom1-amenities': 'Baño 1: ¿Se repusieron los amenidades?',
+    'bathroom1-shower': 'Baño 1/Ducha-Bañera: Limpiar, tallar, desinfectar, quitar moho, verificar regadera y desagüe',
+    'bathroom1-toilet-main': 'Baño 1/Inodoro: Limpiar, tallar y desinfectar',
+    'bathroom1-toilet-photo': 'Baño 1/Inodoro: Verificar descarga + tapa abajo (foto requerida)',
+    'bathroom1-sink-main': 'Baño 1/Lavabo: Limpiar/desinfectar, verificar agua fría/caliente y drenaje, pulir grifo',
+    'bathroom1-sink-photo': 'Baño 1: Foto completa del baño después de limpiar (requerida)',
+    'bathroom2-waste': 'Baño 2: Vaciar basurero y reemplazar bolsa',
+    'bathroom2-amenities': 'Baño 2: ¿Se repusieron los amenidades?',
+    'bathroom2-shower': 'Baño 2/Ducha-Bañera: Limpiar, tallar, desinfectar, quitar moho, verificar regadera y desagüe',
+    'bathroom2-toilet-main': 'Baño 2/Inodoro: Limpiar, tallar y desinfectar',
+    'bathroom2-toilet-photo': 'Baño 2/Inodoro: Verificar descarga + tapa abajo (foto requerida)',
+    'bathroom2-sink-main': 'Baño 2/Lavabo: Limpiar/desinfectar, verificar agua fría/caliente y drenaje, pulir grifo',
+    'bathroom2-sink-photo': 'Baño 2: Foto completa del baño después de limpiar (requerida)',
+    'front-door': 'Puerta principal: estado',
+    'deck-main': 'Deck: Barrer',
+    'deck-furniture': 'Deck: Limpiar muebles de frente/superior/granero',
+    'deck-patio': 'Deck/Muebles de patio: Limpiar y devolver a su lugar',
+    'grill': 'Parrilla: Raspar rejillas con cepillo de alambre',
+    'grill-dirty-note': 'Por favor, avísenos si la parrilla está demasiado sucia',
+    'firepit': 'Área de fogata limpia y sillas en su lugar',
+    'dart-board': 'Diana: Estado',
+    'dart-board-clean': 'Diana: Limpiar diana, pizarra y revisar dardos',
+    'garage-condition': 'Garaje: Estado',
+    'garage-can': 'Bote del garaje',
+    'mini-fridge-condition': 'Mini refrigerador: Estado',
+    'mini-fridge-clean': 'Mini refrigerador: Limpiar refrigerador del garaje',
+    'minibar-condition': 'Minibar: Estado',
+    'pingpong-condition': 'Mesa de ping pong: Estado',
+    'pingpong-clean': 'Mesa de ping pong: Limpiar y revisar inventario',
+    'door-mats-condition': 'Tapetes de puerta: Estado',
+    'door-mats-replace': 'Tapetes de puerta: Revisar y reemplazar tapetes sucios',
+    'high-chair-condition': 'Silla alta: Estado',
+    'high-chair-clean': 'Silla alta: Limpiar sillas altas',
+    'exercise-clean': 'Cuarto de ejercicio: Limpiar el área',
+    'exercise-condition': 'Cuarto de ejercicio: Estado',
+    'secure-property': 'Asegurar propiedad: cerrar y asegurar puertas y ventanas',
+    'windows-locked': 'Verificar que todas las ventanas estén cerradas y aseguradas',
+    'guest-house-main': 'Casa de huéspedes: Limpia y desinfectada',
+    'guest-house-photo': 'Casa de huéspedes: Fotos de muebles y otras áreas',
+    'propane-tanks': 'Tanques de propano: ¿Cuál es el nivel actual del tanque? (levantar para estimar; método de agua caliente opcional)'
+  }
+};
+
+const EXTRA_LABEL_TRANSLATIONS = {
+  es: {
+    dart_count: '¿Cuántos dardos hay?',
+    cornhole_bags: '¿Hay al menos 8 bolsas para Cornhole?',
+    can_jam_frisbee: '¿Hay frisbee para el juego Can Jam?',
+    propane_check: 'Levante el tanque de propano para confirmar que tiene gas',
+    mat_count: '¿Cuántos tapetes de puerta hay?',
+    propane_level_note: 'Nivel actual de propano (texto libre)'
+  }
+};
+
 function normalizeLang(input) {
   return input === 'es' ? 'es' : 'en';
 }
 
 function tOption(value, lang) {
   return (OPTION_TRANSLATIONS[lang] && OPTION_TRANSLATIONS[lang][value]) || value;
+}
+
+function tSectionName(section, lang) {
+  return (SECTION_TRANSLATIONS[lang] && SECTION_TRANSLATIONS[lang][section.name]) || section.name;
+}
+
+function tInstruction(text, lang) {
+  return (INSTRUCTION_TRANSLATIONS[lang] && INSTRUCTION_TRANSLATIONS[lang][text]) || text;
+}
+
+function tItemLabel(item, lang) {
+  return (ITEM_TRANSLATIONS[lang] && ITEM_TRANSLATIONS[lang][item.key]) || item.label;
+}
+
+function tConditionLabel(item, lang, fallback) {
+  const raw = item.conditionLabel || fallback;
+  return tInstruction(raw, lang);
+}
+
+function tExtraLabel(extra, lang) {
+  return (EXTRA_LABEL_TRANSLATIONS[lang] && EXTRA_LABEL_TRANSLATIONS[lang][extra.name]) || extra.label;
 }
 
 app.set('view engine', 'ejs');
@@ -203,7 +340,7 @@ app.get('/form', (req, res) => {
   const activePropertyId = req.query.property_id || '';
   const lang = normalizeLang(req.query.lang);
   const schema = getChecklistForProperty(activePropertyId || null);
-  res.render('form', { schema, activePropertyId, lang, i18n: I18N[lang], tOption, error: null, formData: {} });
+  res.render('form', { schema, activePropertyId, lang, i18n: I18N[lang], tOption, tSectionName, tInstruction, tItemLabel, tConditionLabel, tExtraLabel, error: null, formData: {} });
 });
 
 app.get('/submit', (_, res) => {
@@ -217,7 +354,7 @@ app.post('/submit', upload.any(), async (req, res) => {
     const schema = getChecklistForProperty(property_id || null);
 
     if (!property_id || !cleaner_name) {
-      return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: 'Property and cleaner name are required.', formData: req.body || {} });
+      return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, tSectionName, tInstruction, tItemLabel, tConditionLabel, tExtraLabel, error: 'Property and cleaner name are required.', formData: req.body || {} });
     }
 
     const filesByField = {};
@@ -232,13 +369,13 @@ app.post('/submit', upload.any(), async (req, res) => {
       const condition = req.body[`condition__${item.key}`];
 
       if (item.requiredCondition && !condition) {
-        return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: `Please answer: ${item.label}`, formData: req.body || {} });
+        return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, tSectionName, tInstruction, tItemLabel, tConditionLabel, tExtraLabel, error: `Please answer: ${item.label}`, formData: req.body || {} });
       }
 
       if (requiresPhotoForItem(item, condition)) {
         const photos = filesByField[`photos__${item.key}`] || [];
         if (photos.length < (item.minPhotos || 1)) {
-          return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: `Missing required photo(s) for: ${item.label}`, formData: req.body || {} });
+          return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, tSectionName, tInstruction, tItemLabel, tConditionLabel, tExtraLabel, error: `Missing required photo(s) for: ${item.label}`, formData: req.body || {} });
         }
       }
 
@@ -246,10 +383,10 @@ app.post('/submit', upload.any(), async (req, res) => {
         const issueNote = req.body[`issue_note__${item.key}`];
         const issuePhotos = filesByField[`issue_photos__${item.key}`] || [];
         if (!issueNote || !issueNote.trim()) {
-          return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: `Issue note required for: ${item.label}`, formData: req.body || {} });
+          return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, tSectionName, tInstruction, tItemLabel, tConditionLabel, tExtraLabel, error: `Issue note required for: ${item.label}`, formData: req.body || {} });
         }
         if (!issuePhotos.length) {
-          return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: `Issue photo required for: ${item.label}`, formData: req.body || {} });
+          return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, tSectionName, tInstruction, tItemLabel, tConditionLabel, tExtraLabel, error: `Issue photo required for: ${item.label}`, formData: req.body || {} });
         }
       }
     }
@@ -313,7 +450,7 @@ app.post('/submit', upload.any(), async (req, res) => {
     const propertyId = req.body?.property_id || '';
     const lang = normalizeLang(req.body?.lang || req.query?.lang);
     const schema = getChecklistForProperty(propertyId || null);
-    res.status(500).render('form', { schema, activePropertyId: propertyId, lang, i18n: I18N[lang], tOption, error: `Submit failed: ${err.message}`, formData: req.body || {} });
+    res.status(500).render('form', { schema, activePropertyId: propertyId, lang, i18n: I18N[lang], tOption, tSectionName, tInstruction, tItemLabel, tConditionLabel, tExtraLabel, error: `Submit failed: ${err.message}`, formData: req.body || {} });
   }
 });
 
