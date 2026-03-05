@@ -136,36 +136,44 @@
 <body>
   <div class="topbar">
     <div class="topbar-inner">
-      <h1>Cleaning Checklist</h1>
-      <a href="/admin">Admin submissions</a>
+      <h1><%= i18n.cleaningChecklist %></h1>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label for="lang" style="font-size:.9rem; color:var(--muted)"><%= i18n.languageLabel %></label>
+        <select id="lang" onchange="onLanguageChange(this.value)">
+          <option value="en" <%= lang === 'en' ? 'selected' : '' %>><%= i18n.english %></option>
+          <option value="es" <%= lang === 'es' ? 'selected' : '' %>><%= i18n.spanish %></option>
+        </select>
+        <a href="/admin"><%= i18n.adminSubmissions %></a>
+      </div>
     </div>
   </div>
 
   <div class="container">
     <% if (error) { %>
-      <div class="error"><%= error %><br><span class="small">Your text/checkbox selections were kept. Photo files must be re-selected by browser security rules.</span></div>
+      <div class="error"><%= error %><br><span class="small"><%= i18n.photoReselectHint %></span></div>
     <% } %>
 
     <% const fd = formData || {}; %>
     <form method="post" action="/submit" enctype="multipart/form-data" id="checklist-form">
+      <input type="hidden" name="lang" id="lang_hidden" value="<%= lang %>" />
       <div class="card">
-        <h2 class="section-title">Job Details</h2>
+        <h2 class="section-title"><%= i18n.jobDetails %></h2>
         <div class="grid-3">
           <div class="field">
-            <label>Property</label>
+            <label><%= i18n.property %></label>
             <select name="property_id" id="property_id" required onchange="onPropertyChange(this.value)">
-              <option value="">Select property</option>
+              <option value=""><%= i18n.selectProperty %></option>
               <% schema.properties.forEach(p => { %>
                 <option value="<%= p.id %>" <%= ((fd.property_id || activePropertyId) === p.id) ? 'selected' : '' %>><%= p.name %></option>
               <% }) %>
             </select>
           </div>
           <div class="field">
-            <label>Cleaner Name</label>
+            <label><%= i18n.cleanerName %></label>
             <input type="text" name="cleaner_name" required value="<%= fd.cleaner_name || '' %>" />
           </div>
           <div class="field">
-            <label>Cleaning Date</label>
+            <label><%= i18n.cleaningDate %></label>
             <input type="date" name="cleaning_date" value="<%= fd.cleaning_date || '' %>" />
           </div>
         </div>
@@ -226,13 +234,13 @@
                     <div class="item-body">
                       <% if (item.hasCondition) { %>
                         <div class="field" style="grid-column: 1 / -1;">
-                          <label><%= item.conditionLabel || 'Condition' %></label>
+                          <label><%= item.conditionLabel || i18n.condition %></label>
                           <% if (item.inputType === 'radio') { %>
                             <div style="display:flex; gap:12px; flex-wrap:wrap;">
                               <% item.conditionOptions.forEach(c => { %>
                                 <label style="display:flex; align-items:center; gap:6px;">
                                   <input type="radio" name="condition__<%= item.key %>" value="<%= c %>" class="condition" data-item="<%= item.key %>" <%= fd[`condition__${item.key}`] === c ? 'checked' : '' %> />
-                                  <span><%= c %></span>
+                                  <span><%= tOption(c, lang) %></span>
                                 </label>
                               <% }) %>
                             </div>
@@ -240,7 +248,7 @@
                             <select name="condition__<%= item.key %>" class="condition" data-item="<%= item.key %>">
                               <option value="">Select</option>
                               <% item.conditionOptions.forEach(c => { %>
-                                <option value="<%= c %>" <%= fd[`condition__${item.key}`] === c ? 'selected' : '' %>><%= c %></option>
+                                <option value="<%= c %>" <%= fd[`condition__${item.key}`] === c ? 'selected' : '' %>><%= tOption(c, lang) %></option>
                               <% }) %>
                             </select>
                           <% } %>
@@ -249,13 +257,13 @@
 
                       <% if (item.requiresPhoto) { %>
                         <div class="field">
-                          <label>Required photo(s) (<%= item.minPhotos || 1 %>+)</label>
+                          <label><%= i18n.requiredPhotos %> (<%= item.minPhotos || 1 %>+)</label>
                           <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple />
                         </div>
                       <% } else if (item.optionalPhoto) { %>
                         <div class="field">
                           <details>
-                            <summary style="cursor:pointer; color:var(--muted);">📷 Optional photo</summary>
+                            <summary style="cursor:pointer; color:var(--muted);">📷 <%= i18n.optionalPhoto %></summary>
                             <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple style="margin-top:8px;" />
                           </details>
                         </div>
@@ -282,19 +290,19 @@
                       <% }) %>
 
                       <div class="field" style="grid-column: 1 / -1;">
-                        <label>Notes (optional)</label>
+                        <label><%= i18n.notesOptional %></label>
                         <textarea name="notes__<%= item.key %>"><%= fd[`notes__${item.key}`] || '' %></textarea>
                       </div>
                     </div>
 
                     <div id="issue-box-<%= item.key %>" class="issue-box" style="<%= ['Damaged','Not Working'].includes(fd[`condition__${item.key}`]) ? 'display:block;' : '' %>">
-                      <div class="small">Damaged / Not Working selected — issue note + issue photo required.</div>
+                      <div class="small"><%= i18n.issuePrompt %></div>
                       <div class="field">
-                        <label>Issue note</label>
+                        <label><%= i18n.issueNote %></label>
                         <textarea name="issue_note__<%= item.key %>"><%= fd[`issue_note__${item.key}`] || '' %></textarea>
                       </div>
                       <div class="field">
-                        <label>Issue photo(s)</label>
+                        <label><%= i18n.issuePhotos %></label>
                         <input type="file" name="issue_photos__<%= item.key %>" accept="image/*" multiple />
                       </div>
                     </div>
@@ -307,7 +315,7 @@
       <% }) %>
 
       <div class="actions">
-        <button type="submit">Submit Checklist</button>
+        <button type="submit"><%= i18n.submitChecklist %></button>
       </div>
     </form>
   </div>
@@ -315,10 +323,13 @@
   <script>
     const form = document.getElementById('checklist-form');
     const propertyField = document.getElementById('property_id');
+    const langField = document.getElementById('lang');
+    const langHidden = document.getElementById('lang_hidden');
 
     function draftKeyForProperty() {
       const id = propertyField?.value || 'none';
-      return `airbnb-checklist-draft-v1:${id}`;
+      const lang = langField?.value || 'en';
+      return `airbnb-checklist-draft-v1:${id}:${lang}`;
     }
 
     function toggleIssueBox(selectEl) {
@@ -391,7 +402,15 @@
 
     function onPropertyChange(propertyId) {
       if (!propertyId) return;
-      window.location.href = `/form?property_id=${encodeURIComponent(propertyId)}`;
+      const lang = langField?.value || 'en';
+      window.location.href = `/form?property_id=${encodeURIComponent(propertyId)}&lang=${encodeURIComponent(lang)}`;
+    }
+
+    function onLanguageChange(nextLang) {
+      if (langHidden) langHidden.value = nextLang;
+      const propertyId = propertyField?.value || '';
+      const qp = propertyId ? `property_id=${encodeURIComponent(propertyId)}&` : '';
+      window.location.href = `/form?${qp}lang=${encodeURIComponent(nextLang)}`;
     }
 
     form.addEventListener('input', saveDraft);

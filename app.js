@@ -38,6 +38,71 @@ const schema5436 = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.54
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+const I18N = {
+  en: {
+    languageLabel: 'Language',
+    english: 'English',
+    spanish: 'Español',
+    cleaningChecklist: 'Cleaning Checklist',
+    adminSubmissions: 'Admin submissions',
+    jobDetails: 'Job Details',
+    property: 'Property',
+    selectProperty: 'Select property',
+    cleanerName: 'Cleaner Name',
+    cleaningDate: 'Cleaning Date',
+    condition: 'Condition',
+    requiredPhotos: 'Required photo(s)',
+    optionalPhoto: 'Optional photo',
+    notesOptional: 'Notes (optional)',
+    issueNote: 'Issue note',
+    issuePhotos: 'Issue photo(s)',
+    issuePrompt: 'Damaged / Not Working selected — issue note + issue photo required.',
+    submitChecklist: 'Submit Checklist',
+    photoReselectHint: 'Your text/checkbox selections were kept. Photo files must be re-selected by browser security rules.'
+  },
+  es: {
+    languageLabel: 'Idioma',
+    english: 'English',
+    spanish: 'Español',
+    cleaningChecklist: 'Lista de limpieza',
+    adminSubmissions: 'Envíos del administrador',
+    jobDetails: 'Detalles del trabajo',
+    property: 'Propiedad',
+    selectProperty: 'Seleccione propiedad',
+    cleanerName: 'Nombre del personal de limpieza',
+    cleaningDate: 'Fecha de limpieza',
+    condition: 'Condición',
+    requiredPhotos: 'Foto(s) requerida(s)',
+    optionalPhoto: 'Foto opcional',
+    notesOptional: 'Notas (opcional)',
+    issueNote: 'Nota del problema',
+    issuePhotos: 'Foto(s) del problema',
+    issuePrompt: 'Se seleccionó Dañado / No funciona — se requiere nota y foto del problema.',
+    submitChecklist: 'Enviar lista',
+    photoReselectHint: 'Se conservaron textos y casillas. Por seguridad del navegador, las fotos deben volver a seleccionarse.'
+  }
+};
+
+const OPTION_TRANSLATIONS = {
+  es: {
+    Good: 'Bueno',
+    Dirty: 'Sucio',
+    Damaged: 'Dañado',
+    'Not Working': 'No funciona',
+    Yes: 'Sí',
+    No: 'No',
+    'Nothing Damaged': 'Nada dañado'
+  }
+};
+
+function normalizeLang(input) {
+  return input === 'es' ? 'es' : 'en';
+}
+
+function tOption(value, lang) {
+  return (OPTION_TRANSLATIONS[lang] && OPTION_TRANSLATIONS[lang][value]) || value;
+}
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
@@ -136,8 +201,9 @@ app.get('/', (_, res) => {
 
 app.get('/form', (req, res) => {
   const activePropertyId = req.query.property_id || '';
+  const lang = normalizeLang(req.query.lang);
   const schema = getChecklistForProperty(activePropertyId || null);
-  res.render('form', { schema, activePropertyId, error: null, formData: {} });
+  res.render('form', { schema, activePropertyId, lang, i18n: I18N[lang], tOption, error: null, formData: {} });
 });
 
 app.get('/submit', (_, res) => {
@@ -147,10 +213,11 @@ app.get('/submit', (_, res) => {
 app.post('/submit', upload.any(), async (req, res) => {
   try {
     const { property_id, cleaner_name, cleaning_date } = req.body;
+    const lang = normalizeLang(req.body.lang || req.query.lang);
     const schema = getChecklistForProperty(property_id || null);
 
     if (!property_id || !cleaner_name) {
-      return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: 'Property and cleaner name are required.', formData: req.body || {} });
+      return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: 'Property and cleaner name are required.', formData: req.body || {} });
     }
 
     const filesByField = {};
@@ -165,13 +232,13 @@ app.post('/submit', upload.any(), async (req, res) => {
       const condition = req.body[`condition__${item.key}`];
 
       if (item.requiredCondition && !condition) {
-        return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: `Please answer: ${item.label}`, formData: req.body || {} });
+        return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: `Please answer: ${item.label}`, formData: req.body || {} });
       }
 
       if (requiresPhotoForItem(item, condition)) {
         const photos = filesByField[`photos__${item.key}`] || [];
         if (photos.length < (item.minPhotos || 1)) {
-          return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: `Missing required photo(s) for: ${item.label}`, formData: req.body || {} });
+          return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: `Missing required photo(s) for: ${item.label}`, formData: req.body || {} });
         }
       }
 
@@ -179,10 +246,10 @@ app.post('/submit', upload.any(), async (req, res) => {
         const issueNote = req.body[`issue_note__${item.key}`];
         const issuePhotos = filesByField[`issue_photos__${item.key}`] || [];
         if (!issueNote || !issueNote.trim()) {
-          return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: `Issue note required for: ${item.label}`, formData: req.body || {} });
+          return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: `Issue note required for: ${item.label}`, formData: req.body || {} });
         }
         if (!issuePhotos.length) {
-          return res.status(400).render('form', { schema, activePropertyId: property_id || '', error: `Issue photo required for: ${item.label}`, formData: req.body || {} });
+          return res.status(400).render('form', { schema, activePropertyId: property_id || '', lang, i18n: I18N[lang], tOption, error: `Issue photo required for: ${item.label}`, formData: req.body || {} });
         }
       }
     }
@@ -240,12 +307,13 @@ app.post('/submit', upload.any(), async (req, res) => {
       }
     }
 
-    res.redirect(`/submitted/${submissionId}`);
+    res.redirect(`/submitted/${submissionId}?lang=${encodeURIComponent(lang)}`);
   } catch (err) {
     console.error('Submit error:', err);
     const propertyId = req.body?.property_id || '';
+    const lang = normalizeLang(req.body?.lang || req.query?.lang);
     const schema = getChecklistForProperty(propertyId || null);
-    res.status(500).render('form', { schema, activePropertyId: propertyId, error: `Submit failed: ${err.message}`, formData: req.body || {} });
+    res.status(500).render('form', { schema, activePropertyId: propertyId, lang, i18n: I18N[lang], tOption, error: `Submit failed: ${err.message}`, formData: req.body || {} });
   }
 });
 
