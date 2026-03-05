@@ -33,6 +33,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 
 const rawSchema = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.schema.json'), 'utf8'));
 const schema5378 = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.5378.json'), 'utf8'));
+const schema5436 = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.5436.json'), 'utf8'));
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -42,7 +43,9 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 
 function getChecklistForProperty(propertyId) {
-  const selected = propertyId === 'big-tree-5378' ? schema5378 : rawSchema;
+  let selected = rawSchema;
+  if (propertyId === 'big-tree-5378') selected = schema5378;
+  if (propertyId === 'big-tree-5436') selected = schema5436;
   return {
     properties: rawSchema.properties || [],
     sections: selected.sections || []
