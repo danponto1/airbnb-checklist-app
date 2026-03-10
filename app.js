@@ -484,17 +484,15 @@ app.post('/submit', upload.any(), async (req, res) => {
       }
     }
 
-    try {
-      await sendSubmissionEmail({
-        submissionId,
-        propertyId: property_id,
-        cleanerName: cleaner_name,
-        cleaningDate: cleaning_date || null,
-        createdAt: now
-      });
-    } catch (mailErr) {
+    sendSubmissionEmail({
+      submissionId,
+      propertyId: property_id,
+      cleanerName: cleaner_name,
+      cleaningDate: cleaning_date || null,
+      createdAt: now
+    }).catch((mailErr) => {
       console.error('Email notification failed:', mailErr.message || mailErr);
-    }
+    });
 
     res.redirect(`/submitted/${submissionId}?lang=${encodeURIComponent(lang)}`);
   } catch (err) {
