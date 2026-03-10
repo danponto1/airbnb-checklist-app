@@ -49,8 +49,28 @@ const mailer = (SMTP_HOST && SMTP_USER && SMTP_PASS)
     })
   : null;
 
+console.log('[email] config', JSON.stringify({
+  enabled: !!mailer,
+  host: SMTP_HOST || null,
+  port: SMTP_PORT,
+  secure: SMTP_SECURE,
+  userSet: !!SMTP_USER,
+  passSet: !!SMTP_PASS,
+  fromSet: !!SMTP_FROM,
+  to: NOTIFY_EMAIL_TO || null
+}));
+
 async function sendSubmissionEmail({ submissionId, propertyId, cleanerName, cleaningDate, createdAt }) {
-  if (!mailer || !SMTP_FROM || !NOTIFY_EMAIL_TO) return;
+  if (!mailer || !SMTP_FROM || !NOTIFY_EMAIL_TO) {
+    console.warn('[email] skipped', JSON.stringify({
+      submissionId,
+      reason: 'mailer/from/to missing',
+      mailer: !!mailer,
+      fromSet: !!SMTP_FROM,
+      toSet: !!NOTIFY_EMAIL_TO
+    }));
+    return;
+  }
   const propertyName = (rawSchema.properties || []).find(p => p.id === propertyId)?.name || propertyId;
 
   const subject = `New checklist submission #${submissionId} - ${propertyName}`;
@@ -63,12 +83,14 @@ async function sendSubmissionEmail({ submissionId, propertyId, cleanerName, clea
     `Submitted At: ${createdAt}`
   ].join('\n');
 
-  await mailer.sendMail({
+  console.log('[email] sending', JSON.stringify({ submissionId, to: NOTIFY_EMAIL_TO, from: SMTP_FROM, subject }));
+  const info = await mailer.sendMail({
     from: SMTP_FROM,
     to: NOTIFY_EMAIL_TO,
     subject,
     text
   });
+  console.log('[email] sent', JSON.stringify({ submissionId, messageId: info?.messageId || null, response: info?.response || null }));
 }
 
 const rawSchema = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.schema.json'), 'utf8'));
@@ -484,6 +506,8 @@ app.post('/submit', upload.any(), async (req, res) => {
       }
     }
 
+    console.log('[submit] saved', JSON.stringify({ submissionId, propertyId: property_id, cleanerName: cleaner_name }));
+
     sendSubmissionEmail({
       submissionId,
       propertyId: property_id,
@@ -491,7 +515,15 @@ app.post('/submit', upload.any(), async (req, res) => {
       cleaningDate: cleaning_date || null,
       createdAt: now
     }).catch((mailErr) => {
-      console.error('Email notification failed:', mailErr.message || mailErr);
+      console.error('[email] failed', JSON.stringify({
+        submissionId,
+        name: mailErr?.name || null,
+        code: mailErr?.code || null,
+        command: mailErr?.command || null,
+        responseCode: mailErr?.responseCode || null,
+        response: mailErr?.response || null,
+        message: mailErr?.message || String(mailErr)
+      }));
     });
 
     res.redirect(`/submitted/${submissionId}?lang=${encodeURIComponent(lang)}`);
