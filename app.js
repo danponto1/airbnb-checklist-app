@@ -26,6 +26,9 @@ const SMTP_SECURE = String(process.env.SMTP_SECURE || 'false') === 'true';
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+const SMTP_CONNECTION_TIMEOUT = Number(process.env.SMTP_CONNECTION_TIMEOUT || 10000);
+const SMTP_GREETING_TIMEOUT = Number(process.env.SMTP_GREETING_TIMEOUT || 10000);
+const SMTP_SOCKET_TIMEOUT = Number(process.env.SMTP_SOCKET_TIMEOUT || 15000);
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
@@ -45,7 +48,10 @@ const mailer = (SMTP_HOST && SMTP_USER && SMTP_PASS)
       host: SMTP_HOST,
       port: SMTP_PORT,
       secure: SMTP_SECURE,
-      auth: { user: SMTP_USER, pass: SMTP_PASS }
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+      connectionTimeout: SMTP_CONNECTION_TIMEOUT,
+      greetingTimeout: SMTP_GREETING_TIMEOUT,
+      socketTimeout: SMTP_SOCKET_TIMEOUT
     })
   : null;
 
@@ -57,8 +63,22 @@ console.log('[email] config', JSON.stringify({
   userSet: !!SMTP_USER,
   passSet: !!SMTP_PASS,
   fromSet: !!SMTP_FROM,
-  to: NOTIFY_EMAIL_TO || null
+  to: NOTIFY_EMAIL_TO || null,
+  connectionTimeoutMs: SMTP_CONNECTION_TIMEOUT,
+  greetingTimeoutMs: SMTP_GREETING_TIMEOUT,
+  socketTimeoutMs: SMTP_SOCKET_TIMEOUT
 }));
+
+if (mailer) {
+  mailer.verify()
+    .then(() => console.log('[email] verify ok'))
+    .catch((err) => console.error('[email] verify failed', JSON.stringify({
+      code: err?.code || null,
+      responseCode: err?.responseCode || null,
+      command: err?.command || null,
+      message: err?.message || String(err)
+    })));
+}
 
 async function sendSubmissionEmail({ submissionId, propertyId, cleanerName, cleaningDate, createdAt }) {
   if (!mailer || !SMTP_FROM || !NOTIFY_EMAIL_TO) {
@@ -84,12 +104,15 @@ async function sendSubmissionEmail({ submissionId, propertyId, cleanerName, clea
   ].join('\n');
 
   console.log('[email] sending', JSON.stringify({ submissionId, to: NOTIFY_EMAIL_TO, from: SMTP_FROM, subject }));
-  const info = await mailer.sendMail({
-    from: SMTP_FROM,
-    to: NOTIFY_EMAIL_TO,
-    subject,
-    text
-  });
+  const info = await Promise.race([
+    mailer.sendMail({
+      from: SMTP_FROM,
+      to: NOTIFY_EMAIL_TO,
+      subject,
+      text
+    }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP send timeout')), SMTP_SOCKET_TIMEOUT + 1000))
+  ]);
   console.log('[email] sent', JSON.stringify({ submissionId, messageId: info?.messageId || null, response: info?.response || null }));
 }
 
