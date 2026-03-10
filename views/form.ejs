@@ -95,6 +95,11 @@
       margin-top: 10px;
       background: #fff;
     }
+    .item.error-item {
+      border-color: #d32f2f;
+      background: #fff5f5;
+      box-shadow: 0 0 0 2px rgba(211,47,47,.12);
+    }
     .item-top { display: flex; gap: 10px; align-items: flex-start; }
     .item-title { font-weight: 600; }
     .item-body { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -251,7 +256,14 @@
               <summary><%= catName %> <span style="font-weight:500; color:var(--muted)">(<%= grouped[catName].length %>)</span></summary>
               <div class="category-body">
                 <% grouped[catName].forEach(item => { %>
-                  <div class="item">
+                  <div class="item"
+                    data-item-key="<%= item.key %>"
+                    data-item-label="<%= tItemLabel(item, lang) %>"
+                    data-requires-photo="<%= item.requiresPhoto ? '1' : '0' %>"
+                    data-optional-photo="<%= item.optionalPhoto ? '1' : '0' %>"
+                    data-photo-required-unless-good="<%= item.photoRequiredUnlessGood ? '1' : '0' %>"
+                    data-photo-optional-when="<%= item.photoOptionalWhen || 'Good' %>"
+                    data-required-condition="<%= item.requiredCondition ? '1' : '0' %>">
                     <div class="item-top">
                       <input type="checkbox" name="complete__<%= item.key %>" style="margin-top:2px;" <%= fd[`complete__${item.key}`] ? 'checked' : '' %> />
                       <div class="item-title"><%= tItemLabel(item, lang) %></div>
@@ -284,13 +296,13 @@
                       <% if (item.requiresPhoto) { %>
                         <div class="field">
                           <label class="required-photo-label">📸 <%= i18n.requiredPhotos.toUpperCase() %> (<%= item.minPhotos || 1 %>+)</label>
-                          <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple />
+                          <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple data-min-photos="<%= item.minPhotos || 1 %>" />
                         </div>
                       <% } else if (item.optionalPhoto) { %>
                         <div class="field">
                           <details>
                             <summary style="cursor:pointer; color:var(--muted);">📷 <%= i18n.optionalPhoto %></summary>
-                            <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple style="margin-top:8px;" />
+                            <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple data-min-photos="1" style="margin-top:8px;" />
                           </details>
                         </div>
                       <% } %>
@@ -444,21 +456,90 @@
     form.addEventListener('change', saveDraft);
     let isSubmitting = false;
 
+    function getConditionValueForKey(key) {
+      const checked = form.querySelector(`input.condition[data-item="${CSS.escape(key)}"]:checked`);
+      if (checked) return checked.value;
+      const select = form.querySelector(`select.condition[data-item="${CSS.escape(key)}"]`);
+      return select ? (select.value || '') : '';
+    }
+
+    function validateBeforeSubmit() {
+      const items = Array.from(form.querySelectorAll('.item[data-item-key]'));
+      items.forEach(el => el.classList.remove('error-item'));
+
+      const failures = [];
+
+      for (const itemEl of items) {
+        const key = itemEl.dataset.itemKey;
+        const label = itemEl.dataset.itemLabel || key;
+        const condition = getConditionValueForKey(key);
+
+        const requiredCondition = itemEl.dataset.requiredCondition === '1';
+        const requiresPhoto = itemEl.dataset.requiresPhoto === '1';
+        const optionalPhoto = itemEl.dataset.optionalPhoto === '1';
+        const photoRequiredUnlessGood = itemEl.dataset.photoRequiredUnlessGood === '1';
+        const photoOptionalWhen = itemEl.dataset.photoOptionalWhen || 'Good';
+
+        if (requiredCondition && !condition) {
+          failures.push({ el: itemEl, msg: `Please answer: ${label}` });
+          continue;
+        }
+
+        let photoRequired = requiresPhoto;
+        if (!photoRequired && optionalPhoto && photoRequiredUnlessGood) {
+          photoRequired = !!condition && condition !== photoOptionalWhen;
+        }
+
+        if (photoRequired) {
+          const photoInput = form.querySelector(`input[type="file"][name="photos__${CSS.escape(key)}"]`);
+          const minPhotos = Number(photoInput?.dataset.minPhotos || 1);
+          const selectedCount = photoInput?.files?.length || 0;
+          if (selectedCount < minPhotos) {
+            failures.push({ el: itemEl, msg: `Missing required photo(s) for: ${label}` });
+            continue;
+          }
+        }
+
+        if (['Damaged', 'Not Working'].includes(condition)) {
+          const issueNote = form.querySelector(`textarea[name="issue_note__${CSS.escape(key)}"]`);
+          const issuePhotos = form.querySelector(`input[type="file"][name="issue_photos__${CSS.escape(key)}"]`);
+          const noteOk = !!(issueNote && issueNote.value && issueNote.value.trim());
+          const issuePhotoCount = issuePhotos?.files?.length || 0;
+          if (!noteOk || issuePhotoCount < 1) {
+            failures.push({ el: itemEl, msg: `Issue note + issue photo required for: ${label}` });
+            continue;
+          }
+        }
+      }
+
+      if (!failures.length) return { ok: true };
+
+      failures.forEach(f => f.el.classList.add('error-item'));
+      const first = failures[0];
+      first.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert(first.msg);
+      return { ok: false };
+    }
+
     window.addEventListener('beforeunload', (e) => {
       if (!isSubmitting) return;
       e.preventDefault();
       e.returnValue = '';
     });
 
-    form.addEventListener('submit', () => {
+    form.addEventListener('submit', (e) => {
+      const validation = validateBeforeSubmit();
+      if (!validation.ok) {
+        e.preventDefault();
+        return;
+      }
+
       isSubmitting = true;
       const submitBtn = document.getElementById('submitBtn');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Submitting...';
       }
-      // On successful submit we clear; if server rejects validation,
-      // this callback still ran but the next paint preserves entered values from server-side re-render.
       setTimeout(clearDraft, 1200);
     });
 
