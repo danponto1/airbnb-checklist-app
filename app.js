@@ -307,6 +307,15 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  const started = Date.now();
+  console.log('[http] req', JSON.stringify({ method: req.method, path: req.path }));
+  res.on('finish', () => {
+    console.log('[http] res', JSON.stringify({ method: req.method, path: req.path, status: res.statusCode, ms: Date.now() - started }));
+  });
+  next();
+});
+
 function getChecklistForProperty(propertyId) {
   let selected = rawSchema;
   if (propertyId === 'big-tree-5378') selected = schema5378;
