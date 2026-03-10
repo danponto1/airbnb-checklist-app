@@ -1,7 +1,8 @@
 {
   "properties": [
     { "id": "big-tree-5378", "name": "5378 Big Tree Road" },
-    { "id": "big-tree-5436", "name": "5436 Big Tree Road" }
+    { "id": "big-tree-5436", "name": "5436 Big Tree Road" },
+    { "id": "test-email", "name": "TEST - Email Check" }
   ],
   "sections": [
     {

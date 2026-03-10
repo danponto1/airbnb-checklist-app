@@ -1,0 +1,15 @@
+{
+  "sections": [
+    {
+      "id": "quick-test",
+      "name": "Quick Email Test",
+      "items": [
+        {
+          "key": "email-test-complete",
+          "label": "Email test: check this box and submit.",
+          "optionalPhoto": false
+        }
+      ]
+    }
+  ]
+}
