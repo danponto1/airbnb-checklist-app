@@ -129,8 +129,15 @@
       width: 100%;
     }
     .required-photo-label {
-      color: #c62828;
-      font-weight: 700;
+      display: inline-block;
+      color: #ffffff;
+      background: #c62828;
+      font-weight: 800;
+      font-size: .9rem;
+      letter-spacing: .2px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 6px;
     }
     button {
       background: var(--brand);
@@ -272,7 +279,7 @@
 
                       <% if (item.requiresPhoto) { %>
                         <div class="field">
-                          <label class="required-photo-label"><%= i18n.requiredPhotos %> (<%= item.minPhotos || 1 %>+)</label>
+                          <label class="required-photo-label">📸 <%= i18n.requiredPhotos.toUpperCase() %> (<%= item.minPhotos || 1 %>+)</label>
                           <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple />
                         </div>
                       <% } else if (item.optionalPhoto) { %>
