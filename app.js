@@ -4,6 +4,7 @@ const fs = require('fs');
 const multer = require('multer');
 const dayjs = require('dayjs');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
@@ -18,6 +19,14 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || crypto.randomBytes(24).toString('hex');
 const ADMIN_COOKIE_NAME = 'checklist_admin';
 
+const NOTIFY_EMAIL_TO = process.env.NOTIFY_EMAIL_TO || 'hello@cityofgoodmaids.info';
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
+const SMTP_SECURE = String(process.env.SMTP_SECURE || 'false') === 'true';
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
   process.exit(1);
@@ -30,6 +39,37 @@ if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false }
 });
+
+const mailer = (SMTP_HOST && SMTP_USER && SMTP_PASS)
+  ? nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
+      auth: { user: SMTP_USER, pass: SMTP_PASS }
+    })
+  : null;
+
+async function sendSubmissionEmail({ submissionId, propertyId, cleanerName, cleaningDate, createdAt }) {
+  if (!mailer || !SMTP_FROM || !NOTIFY_EMAIL_TO) return;
+  const propertyName = (rawSchema.properties || []).find(p => p.id === propertyId)?.name || propertyId;
+
+  const subject = `New checklist submission #${submissionId} - ${propertyName}`;
+  const text = [
+    'A new cleaning checklist was submitted.',
+    `Submission ID: ${submissionId}`,
+    `Property: ${propertyName}`,
+    `Cleaner: ${cleanerName}`,
+    `Cleaning Date: ${cleaningDate || '-'}`,
+    `Submitted At: ${createdAt}`
+  ].join('\n');
+
+  await mailer.sendMail({
+    from: SMTP_FROM,
+    to: NOTIFY_EMAIL_TO,
+    subject,
+    text
+  });
+}
 
 const rawSchema = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.schema.json'), 'utf8'));
 const schema5378 = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.5378.json'), 'utf8'));
@@ -442,6 +482,18 @@ app.post('/submit', upload.any(), async (req, res) => {
         });
         if (photoErr) throw photoErr;
       }
+    }
+
+    try {
+      await sendSubmissionEmail({
+        submissionId,
+        propertyId: property_id,
+        cleanerName: cleaner_name,
+        cleaningDate: cleaning_date || null,
+        createdAt: now
+      });
+    } catch (mailErr) {
+      console.error('Email notification failed:', mailErr.message || mailErr);
     }
 
     res.redirect(`/submitted/${submissionId}?lang=${encodeURIComponent(lang)}`);
