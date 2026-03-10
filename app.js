@@ -119,7 +119,6 @@ async function sendSubmissionEmail({ submissionId, propertyId, cleanerName, clea
 const rawSchema = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.schema.json'), 'utf8'));
 const schema5378 = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.5378.json'), 'utf8'));
 const schema5436 = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.5436.json'), 'utf8'));
-const schemaTest = JSON.parse(fs.readFileSync(path.join(__dirname, 'checklist.test.json'), 'utf8'));
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -343,7 +342,6 @@ function getChecklistForProperty(propertyId) {
   let selected = rawSchema;
   if (propertyId === 'big-tree-5378') selected = schema5378;
   if (propertyId === 'big-tree-5436') selected = schema5436;
-  if (propertyId === 'test-email') selected = schemaTest;
   return {
     properties: rawSchema.properties || [],
     sections: selected.sections || []
