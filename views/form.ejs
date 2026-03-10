@@ -115,7 +115,22 @@
       padding: 12px 18px;
       margin: 8px -18px -18px;
       display: flex;
-      justify-content: flex-end;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .submit-warning {
+      font-size: .9rem;
+      color: #8f2020;
+      background: #fff0f0;
+      border: 1px solid #ffcaca;
+      padding: 8px 10px;
+      border-radius: 8px;
+      width: 100%;
+    }
+    .required-photo-label {
+      color: #c62828;
+      font-weight: 700;
     }
     button {
       background: var(--brand);
@@ -257,7 +272,7 @@
 
                       <% if (item.requiresPhoto) { %>
                         <div class="field">
-                          <label><%= i18n.requiredPhotos %> (<%= item.minPhotos || 1 %>+)</label>
+                          <label class="required-photo-label"><%= i18n.requiredPhotos %> (<%= item.minPhotos || 1 %>+)</label>
                           <input type="file" name="photos__<%= item.key %>" accept="image/*" multiple />
                         </div>
                       <% } else if (item.optionalPhoto) { %>
@@ -315,7 +330,8 @@
       <% }) %>
 
       <div class="actions">
-        <button type="submit"><%= i18n.submitChecklist %></button>
+        <div class="submit-warning">⚠️ Do not refresh or leave this page until you see the "Checklist submitted" confirmation screen.</div>
+        <button type="submit" id="submitBtn"><%= i18n.submitChecklist %></button>
       </div>
     </form>
   </div>
@@ -415,7 +431,21 @@
 
     form.addEventListener('input', saveDraft);
     form.addEventListener('change', saveDraft);
+    let isSubmitting = false;
+
+    window.addEventListener('beforeunload', (e) => {
+      if (!isSubmitting) return;
+      e.preventDefault();
+      e.returnValue = '';
+    });
+
     form.addEventListener('submit', () => {
+      isSubmitting = true;
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+      }
       // On successful submit we clear; if server rejects validation,
       // this callback still ran but the next paint preserves entered values from server-side re-render.
       setTimeout(clearDraft, 1200);
